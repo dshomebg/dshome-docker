@@ -1,8 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables from root .env file
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// Load environment variables from root .env file (only if not already set by PM2 or other process manager)
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+}
 
 export const config = {
   // Server
