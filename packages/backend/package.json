@@ -1,0 +1,47 @@
+{
+  "name": "@dshome/backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend API for DSHome e-commerce platform",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "clean": "rimraf dist",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/db/seed.ts"
+  },
+  "dependencies": {
+    "@dshome/shared": "workspace:*",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.4.1",
+    "drizzle-orm": "^0.29.3",
+    "postgres": "^3.4.3",
+    "redis": "^4.6.12",
+    "meilisearch": "^0.37.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.22.4",
+    "winston": "^3.11.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^20.11.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/multer": "^1.4.11",
+    "drizzle-kit": "^0.20.13",
+    "tsx": "^4.7.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.0"
+  }
+}
