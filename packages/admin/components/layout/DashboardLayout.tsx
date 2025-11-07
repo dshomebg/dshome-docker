@@ -9,11 +9,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
       <Sidebar />
-      <div className="ml-64">
+      <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden ml-64">
         <Header />
-        <main className="mt-16 p-6">
+        <main className="flex-grow p-4 md:p-6 2xl:p-10">
           {children}
         </main>
       </div>
