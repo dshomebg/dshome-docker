@@ -1,0 +1,30 @@
+{
+  "name": "dshome-ecommerce",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Modern e-commerce platform for physical goods - Bulgarian market",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rmdir /s /q node_modules",
+    "docker:dev:up": "docker-compose -f docker/docker-compose.dev.yml up -d",
+    "docker:dev:down": "docker-compose -f docker/docker-compose.dev.yml down",
+    "docker:dev:logs": "docker-compose -f docker/docker-compose.dev.yml logs -f",
+    "db:migrate": "pnpm --filter @dshome/backend db:migrate",
+    "db:studio": "pnpm --filter @dshome/backend db:studio",
+    "db:seed": "pnpm --filter @dshome/backend db:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "prettier": "^3.2.0",
+    "turbo": "^1.12.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
