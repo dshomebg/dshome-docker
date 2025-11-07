@@ -8,6 +8,48 @@
       "when": 1762517188993,
       "tag": "0000_next_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1762528152023,
+      "tag": "0001_bitter_maelstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762533244084,
+      "tag": "0002_tan_dragon_lord",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1762533976072,
+      "tag": "0003_melodic_ezekiel",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1762541000000,
+      "tag": "0004_warehouses_restructure",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1762542000000,
+      "tag": "0005_add_warehouse_url",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1762543000000,
+      "tag": "0006_add_attributes",
+      "breakpoints": true
     }
   ]
 }

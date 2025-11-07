@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'dshome.dev',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
     ],
   },
 };

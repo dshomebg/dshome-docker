@@ -29,14 +29,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Clear auth and redirect to login
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/admin/login";
-      }
-    }
+    // Temporarily disabled for development - no auth yet
+    // if (error.response?.status === 401) {
+    //   // Clear auth and redirect to login
+    //   if (typeof window !== "undefined") {
+    //     localStorage.removeItem("accessToken");
+    //     localStorage.removeItem("refreshToken");
+    //     window.location.href = "/admin/login";
+    //   }
+    // }
     return Promise.reject(error);
   }
 );

@@ -323,16 +323,18 @@ Production Server:
 - createdAt, updatedAt
 ```
 
-**categories** - Категории
+**categories** - Категории (йерархична структура)
 ```sql
 - id (uuid, primary key)
 - name
 - slug (unique)
 - description
-- parentId (self-reference for tree)
-- imageUrl
+- parentId (self-reference for tree, ON DELETE CASCADE)
+- image (renamed from imageUrl)
 - position (ordering)
-- status
+- status (active, inactive)
+- metaTitle (SEO)
+- metaDescription (SEO)
 - createdAt, updatedAt
 ```
 
@@ -411,6 +413,68 @@ Production Server:
 - currency
 - validFrom, validTo
 - createdAt
+```
+
+**feature_groups** - Групи характеристики
+```sql
+- id (uuid, primary key)
+- name
+- status (active, inactive)
+- createdAt, updatedAt
+```
+
+**feature_values** - Стойности на характеристики
+```sql
+- id (uuid, primary key)
+- featureGroupId (foreign key, ON DELETE CASCADE)
+- name
+- position (ordering)
+- createdAt, updatedAt
+```
+
+**brands** - Марки
+```sql
+- id (uuid, primary key)
+- name
+- slug (unique)
+- description
+- logo
+- status (active, inactive)
+- metaTitle (SEO)
+- metaDescription (SEO)
+- createdAt, updatedAt
+```
+
+**suppliers** - Доставчици
+```sql
+- id (uuid, primary key)
+- name
+- contactPerson
+- email
+- phone
+- isDefault
+- status (active, inactive)
+- createdAt, updatedAt
+```
+
+**attribute_groups** - Групи атрибути (за комбинации)
+```sql
+- id (uuid, primary key)
+- name
+- displayType (dropdown, radio, color)
+- status (active, inactive)
+- createdAt, updatedAt
+```
+
+**attribute_values** - Стойности на атрибути
+```sql
+- id (uuid, primary key)
+- attributeGroupId (foreign key, ON DELETE CASCADE)
+- name
+- colorHex (hex color code за цветове)
+- textureImage (път към текстура, приоритет над colorHex)
+- position (ordering)
+- createdAt, updatedAt
 ```
 
 ## Security

@@ -7,10 +7,12 @@ export const categories = pgTable('categories', {
   name: varchar('name', { length: 255 }).notNull(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   description: text('description'),
-  parentId: uuid('parent_id').references(() => categories.id),
-  imageUrl: varchar('image_url', { length: 500 }),
+  parentId: uuid('parent_id').references((): any => categories.id, { onDelete: 'cascade' }),
+  image: varchar('image', { length: 500 }),
   position: integer('position').notNull().default(0),
   status: categoryStatusEnum('status').notNull().default('active'),
+  metaTitle: varchar('meta_title', { length: 255 }),
+  metaDescription: text('meta_description'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });

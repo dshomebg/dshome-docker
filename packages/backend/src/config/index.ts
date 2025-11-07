@@ -10,6 +10,7 @@ export const config = {
   // Server
   port: parseInt(process.env.API_PORT || '4000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
 
   // Database
   databaseUrl: process.env.DATABASE_URL || 'postgresql://dev:dev@localhost:5432/dshome_dev',
