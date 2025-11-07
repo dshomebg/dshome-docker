@@ -23,8 +23,8 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-sm md:px-6 2xl:px-11">
+    <header className="fixed left-64 right-0 top-0 z-40 flex h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex w-full items-center justify-between px-4 py-4 shadow-sm md:px-6 2xl:px-11">
         {/* Left side - Search */}
         <div className="hidden sm:block">
           <div className="relative">

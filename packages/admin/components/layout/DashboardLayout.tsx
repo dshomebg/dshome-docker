@@ -13,7 +13,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden ml-64">
         <Header />
-        <main className="flex-grow p-4 md:p-6 2xl:p-10">
+        <main className="mt-16 flex-grow p-4 md:p-6 2xl:p-10">
           {children}
         </main>
       </div>
