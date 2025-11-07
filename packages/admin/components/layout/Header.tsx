@@ -1,9 +1,27 @@
 "use client";
 
-import { Bell, Search, User } from "lucide-react";
-import { ThemeToggleButton } from "../ThemeToggleButton";
+import { Bell, Search, User, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Header() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    if (newTheme) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-sm md:px-6 2xl:px-11">
@@ -24,7 +42,16 @@ export default function Header() {
         {/* Right side - Actions */}
         <div className="flex items-center gap-3">
           {/* Theme Toggle */}
-          <ThemeToggleButton />
+          <button
+            onClick={toggleTheme}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            {isDark ? (
+              <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            ) : (
+              <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            )}
+          </button>
 
           {/* Notifications */}
           <button className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
