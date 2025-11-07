@@ -26,43 +26,43 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
-    path: "/admin",
+    path: "/",
     icon: Home,
   },
   {
     title: "Каталог",
     icon: Box,
     children: [
-      { title: "Продукти", path: "/admin/catalog/products" },
-      { title: "Категории", path: "/admin/catalog/categories" },
-      { title: "Атрибути", path: "/admin/catalog/attributes" },
-      { title: "Характеристики", path: "/admin/catalog/features" },
-      { title: "Марки", path: "/admin/catalog/brands" },
-      { title: "Доставчици", path: "/admin/catalog/suppliers" },
-      { title: "Складове", path: "/admin/catalog/warehouses" },
+      { title: "Продукти", path: "/catalog/products" },
+      { title: "Категории", path: "/catalog/categories" },
+      { title: "Атрибути", path: "/catalog/attributes" },
+      { title: "Характеристики", path: "/catalog/features" },
+      { title: "Марки", path: "/catalog/brands" },
+      { title: "Доставчици", path: "/catalog/suppliers" },
+      { title: "Складове", path: "/catalog/warehouses" },
     ],
   },
   {
     title: "Продажби",
     icon: ShoppingCart,
     children: [
-      { title: "Поръчки", path: "/admin/sales/orders" },
-      { title: "Клиенти", path: "/admin/sales/customers" },
-      { title: "Куриери", path: "/admin/sales/couriers" },
-      { title: "Статуси", path: "/admin/sales/statuses" },
+      { title: "Поръчки", path: "/sales/orders" },
+      { title: "Клиенти", path: "/sales/customers" },
+      { title: "Куриери", path: "/sales/couriers" },
+      { title: "Статуси", path: "/sales/statuses" },
     ],
   },
   {
     title: "Инструменти",
     icon: Wrench,
     children: [
-      { title: "Обновяване на стоки", path: "/admin/tools/stock-update" },
-      { title: "Калкулатор доставки", path: "/admin/tools/shipping-calc" },
+      { title: "Обновяване на стоки", path: "/tools/stock-update" },
+      { title: "Калкулатор доставки", path: "/tools/shipping-calc" },
     ],
   },
   {
     title: "Настройки",
-    path: "/admin/settings",
+    path: "/settings",
     icon: Settings,
   },
 ];
@@ -83,7 +83,7 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 z-50 h-screen w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Logo */}
       <div className="flex h-16 items-center justify-center border-b border-gray-200 dark:border-gray-800">
-        <Link href="/admin" className="text-xl font-bold text-gray-900 dark:text-white">
+        <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
           DSHome Admin
         </Link>
       </div>
