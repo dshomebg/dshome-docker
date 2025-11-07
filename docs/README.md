@@ -74,11 +74,17 @@ pnpm db:seed
 pnpm dev
 ```
 
-**Access:**
-- Backend API: http://localhost:4000
+**Access (Development):**
+- Backend API: http://localhost:4000/api/
 - Frontend: http://localhost:3000 (когато се създаде)
-- Admin: http://localhost:3001 (когато се създаде)
+- Admin: http://localhost:3001/admin/ (когато се създаде)
 - Database Studio: `pnpm db:studio`
+
+**Access (Production):**
+- Frontend: https://dshome.dev/
+- Admin Panel: https://dshome.dev/admin/
+- Backend API: https://dshome.dev/api/
+- Static Images: https://dshome.dev/images/
 
 **Default credentials:**
 - Email: admin@dshome.dev
@@ -131,7 +137,9 @@ GET  /api/auth/me        → Current user (auth required)
 ## Допълнителни ресурси
 
 - [GitHub Repository](https://github.com/dshomebg/dshome-docker)
-- [Production Server](https://srv.dshome.dev) (admin access required)
+- [Production Site](https://dshome.dev) (Frontend - в разработка)
+- [Production Admin](https://dshome.dev/admin/) (в разработка)
+- [Production API](https://dshome.dev/api/health) ✅ Работи
 
 ---
 

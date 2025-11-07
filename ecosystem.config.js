@@ -20,6 +20,7 @@ module.exports = {
       JWT_REFRESH_EXPIRATION: "7d",
       IMAGES_PATH: "/home/admin/web/dshome.dev/public_html/images",
       IMAGES_BASE_URL: "https://dshome.dev/images",
+      API_URL: "https://dshome.dev/api",
       LOG_LEVEL: "info",
       DEFAULT_CURRENCY: "EUR",
       DEFAULT_LOCALE: "bg"

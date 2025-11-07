@@ -320,14 +320,20 @@ ssh -i ~/.ssh/your-key root@157.90.129.12
 
 ### 2. Domain Configuration (в HestiaCP)
 
-**Създай 3 домейна:**
-1. `dshome.dev` → Frontend
-2. `admin.dshome.dev` → Admin Panel
-3. `api.dshome.dev` → Backend API
+**Създай 1 домейн:**
+1. `dshome.dev` → Всички приложения (path-based routing)
 
 **Let's Encrypt SSL:**
-- Активирай SSL за всички 3 домейна
+- Активирай SSL за dshome.dev (с www.dshome.dev)
 - Auto-renewal: enabled
+
+**URL структура:**
+```
+https://dshome.dev/              → Frontend (React store)
+https://dshome.dev/admin/        → Admin Panel (Next.js)
+https://dshome.dev/api/          → Backend API
+https://dshome.dev/images/       → Static images
+```
 
 ### 3. Database Setup (Native PostgreSQL)
 
@@ -364,13 +370,14 @@ MEILISEARCH_MASTER_KEY=PRODUCTION_MASTER_KEY_HERE
 
 # Backend API
 API_PORT=4000
-API_URL=https://api.dshome.dev
+API_URL=https://dshome.dev/api
 
 # Frontend
-VITE_API_URL=https://api.dshome.dev
+VITE_API_URL=https://dshome.dev/api
 
 # Admin
-NEXT_PUBLIC_API_URL=https://api.dshome.dev
+NEXT_PUBLIC_API_URL=https://dshome.dev/api
+NEXT_PUBLIC_BASE_PATH=/admin
 
 # JWT
 JWT_SECRET=STRONG_RANDOM_SECRET_HERE
@@ -398,119 +405,81 @@ chown -R www-data:www-data /var/www/dshome.dev/public/images
 chmod -R 755 /var/www/dshome.dev/public/images
 ```
 
-### 6. Nginx Configuration
+### 6. Nginx Configuration (HestiaCP)
 
-**Frontend (dshome.dev):**
+**Важно:** HestiaCP управлява основната Nginx конфигурация. Използваме custom config файл.
+
+**Файл:** `/home/admin/conf/web/dshome.dev/nginx.ssl.conf_custom`
+
 ```nginx
-# /etc/nginx/sites-available/dshome.dev
+# Custom Nginx configuration for dshome.dev
+# This file is included by HestiaCP main config
 
-server {
-    listen 80;
-    listen [::]:80;
-    server_name dshome.dev;
-    return 301 https://$host$request_uri;
+# Static images serving
+location /images/ {
+    alias /home/admin/web/dshome.dev/public_html/images/;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    access_log off;
 }
 
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name dshome.dev;
+# Backend API proxy
+location /api/ {
+    proxy_pass http://localhost:4000/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
 
-    ssl_certificate /path/to/ssl/cert.pem;
-    ssl_certificate_key /path/to/ssl/key.pem;
+    # CORS headers
+    add_header Access-Control-Allow-Origin * always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Authorization, Content-Type" always;
 
-    root /var/www/dshome.dev/public;
-    index index.html;
-
-    # Static images
-    location /images/ {
-        alias /var/www/dshome.dev/public/images/;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
+    if ($request_method = OPTIONS) {
+        return 204;
     }
+}
 
-    # Frontend SPA
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
+# Admin Panel proxy
+location /admin/ {
+    proxy_pass http://localhost:3001/admin/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+
+# Frontend SPA (fallback to index.html for React Router)
+location / {
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+
+# Health check endpoint
+location /health {
+    proxy_pass http://localhost:4000/api/health;
+    access_log off;
 }
 ```
 
-**Backend API (api.dshome.dev):**
-```nginx
-# /etc/nginx/sites-available/api.dshome.dev
-
-server {
-    listen 80;
-    server_name api.dshome.dev;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name api.dshome.dev;
-
-    ssl_certificate /path/to/ssl/cert.pem;
-    ssl_certificate_key /path/to/ssl/key.pem;
-
-    location / {
-        proxy_pass http://localhost:4000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-**Admin Panel (admin.dshome.dev):**
-```nginx
-# /etc/nginx/sites-available/admin.dshome.dev
-
-server {
-    listen 80;
-    server_name admin.dshome.dev;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name admin.dshome.dev;
-
-    ssl_certificate /path/to/ssl/cert.pem;
-    ssl_certificate_key /path/to/ssl/key.pem;
-
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
+**Активиране:**
 ```bash
-# Enable sites
-ln -s /etc/nginx/sites-available/dshome.dev /etc/nginx/sites-enabled/
-ln -s /etc/nginx/sites-available/api.dshome.dev /etc/nginx/sites-enabled/
-ln -s /etc/nginx/sites-available/admin.dshome.dev /etc/nginx/sites-enabled/
+# HestiaCP автоматично включва _custom файлове
+# Само рестартираме Nginx
+systemctl restart nginx
 
-# Test configuration
+# Проверка
 nginx -t
-
-# Reload Nginx
-systemctl reload nginx
 ```
 
 ### 7. Docker Deployment

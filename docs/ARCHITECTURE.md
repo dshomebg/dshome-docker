@@ -119,7 +119,24 @@ dshome-docker/
 - `pnpm workspaces` - package management
 - `Turbo` - build orchestration и кеширане
 
-### 2. Database стратегия
+### 2. URL структура (Path-based routing)
+
+**Production URLs:**
+```
+https://dshome.dev/              → Frontend (React store)
+https://dshome.dev/admin/        → Admin Panel (Next.js)
+https://dshome.dev/api/          → Backend API
+https://dshome.dev/images/       → Static images
+```
+
+**Защо path-based вместо subdomains?**
+- Един SSL сертификат за всички endpoints
+- Споделени cookies - по-лесна authentication
+- Няма CORS complications
+- По-проста DNS конфигурация
+- По-лесен deployment и поддръжка
+
+### 3. Database стратегия
 
 **Development (локално):**
 ```
@@ -144,7 +161,7 @@ Native PostgreSQL → localhost:5432
 - По-добра производителност без Docker overhead
 - Лесна миграция и scaling
 
-### 3. Images Storage
+### 4. Images Storage
 
 **Архитектура:**
 ```
@@ -173,7 +190,7 @@ Production Server:
 - Бързо обслужване от Nginx
 - Лесни backups (part of server backup)
 
-### 4. Authentication Flow
+### 5. Authentication Flow
 
 ```
 ┌─────────┐                ┌─────────┐                ┌──────────┐
@@ -214,7 +231,7 @@ Production Server:
 }
 ```
 
-### 5. API Architecture
+### 6. API Architecture
 
 **REST API Design:**
 ```
@@ -244,7 +261,7 @@ Production Server:
     └── ...
 ```
 
-### 6. Search Architecture (Meilisearch)
+### 7. Search Architecture (Meilisearch)
 
 **Why Meilisearch?**
 - Изключително бърз (написан на Rust)
@@ -268,7 +285,7 @@ Production Server:
 }
 ```
 
-### 7. State Management
+### 8. State Management
 
 **Frontend:**
 - TanStack Query (React Query) - server state
