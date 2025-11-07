@@ -66,3 +66,8 @@ dev-assets/images/categories/*
 # Backup files
 *.bak
 *.backup
+
+# Licensed/Commercial templates (do not commit to public repo)
+tailadminpro/
+TailAdmin-pro-v2.2-figma/
+prompt/
