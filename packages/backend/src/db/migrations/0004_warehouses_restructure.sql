@@ -13,14 +13,14 @@ ALTER TABLE "warehouses" ADD COLUMN "is_physical_store" boolean DEFAULT false NO
 --> statement-breakpoint
 
 -- Drop old columns that are no longer needed
-ALTER TABLE "warehouses" DROP COLUMN "slug";
+ALTER TABLE "warehouses" DROP COLUMN IF EXISTS "slug";
 --> statement-breakpoint
-ALTER TABLE "warehouses" DROP COLUMN "code";
+ALTER TABLE "warehouses" DROP COLUMN IF EXISTS "code";
 --> statement-breakpoint
-ALTER TABLE "warehouses" DROP COLUMN "city";
+ALTER TABLE "warehouses" DROP COLUMN IF EXISTS "city";
 --> statement-breakpoint
-ALTER TABLE "warehouses" DROP COLUMN "country";
+ALTER TABLE "warehouses" DROP COLUMN IF EXISTS "country";
 --> statement-breakpoint
-ALTER TABLE "warehouses" DROP COLUMN "manager";
+ALTER TABLE "warehouses" DROP COLUMN IF EXISTS "manager";
 --> statement-breakpoint
-ALTER TABLE "warehouses" DROP COLUMN "capacity";
+ALTER TABLE "warehouses" DROP COLUMN IF EXISTS "capacity";
