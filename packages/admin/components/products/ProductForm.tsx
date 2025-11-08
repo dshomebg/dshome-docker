@@ -10,7 +10,7 @@ import { featuresService } from "@/lib/services/features.service";
 import { warehousesService } from "@/lib/services/warehouses.service";
 import ImageUpload from "../ui/ImageUpload";
 import SeoForm from "../seo/SeoForm";
-import { SeoFormData } from "@dshome/shared/types/seo";
+import { SeoFormData } from "@dshome/shared";
 
 interface ProductFormProps {
   product?: any; // Full product with details

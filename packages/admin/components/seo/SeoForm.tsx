@@ -1,6 +1,6 @@
 "use client";
 
-import { SeoFormData } from "@dshome/shared/types/seo";
+import { SeoFormData } from "@dshome/shared";
 
 interface SeoFormProps {
   data: SeoFormData;

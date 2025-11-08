@@ -6,7 +6,7 @@ import { categoriesService, Category } from "@/lib/services/categories.service";
 import CategoryTreeSelect from "./CategoryTreeSelect";
 import ImageUpload from "../ui/ImageUpload";
 import SeoForm from "../seo/SeoForm";
-import { SeoFormData } from "@dshome/shared/types/seo";
+import { SeoFormData } from "@dshome/shared";
 
 interface CategoryFormProps {
   category?: Category;
