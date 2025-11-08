@@ -8,7 +8,7 @@ import { logger } from '../utils/logger';
 // Get all attribute groups with optional search and pagination
 export const getAttributeGroups = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { search, page = '1', limit = '20', status } = req.query;
+    const { search, page = '1', limit = '20', status, include } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
@@ -33,6 +33,23 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
       .limit(limitNum)
       .offset(offset);
 
+    // If include=values is requested, fetch values for each group
+    let groupsWithValues = groupsList;
+    if (include === 'values') {
+      groupsWithValues = await Promise.all(
+        groupsList.map(async (group) => {
+          const values = await db.select()
+            .from(attributeValues)
+            .where(eq(attributeValues.attributeGroupId, group.id))
+            .orderBy(asc(attributeValues.position));
+          return {
+            ...group,
+            values
+          };
+        })
+      );
+    }
+
     const [{ value: totalCount }] = await db
       .select({ value: count() })
       .from(attributeGroups);
@@ -40,7 +57,7 @@ export const getAttributeGroups = async (req: Request, res: Response, next: Next
     logger.info(`Fetched ${groupsList.length} attribute groups`);
 
     res.json({
-      data: groupsList,
+      data: groupsWithValues,
       pagination: {
         page: pageNum,
         limit: limitNum,

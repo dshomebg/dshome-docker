@@ -9,32 +9,15 @@ export default function WarehousesPage() {
   const router = useRouter();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
 
   const fetchWarehouses = async () => {
     try {
       setLoading(true);
-      const params: any = {
-        page: currentPage,
-        limit: 20,
-      };
-
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-
-      if (statusFilter && statusFilter !== "all") {
-        params.status = statusFilter;
-      }
-
-      const response = await warehousesService.getWarehouses(params);
+      const response = await warehousesService.getWarehouses({
+        page: 1,
+        limit: 100,
+      });
       setWarehouses(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotal(response.pagination.total);
     } catch (error) {
       console.error("Error fetching warehouses:", error);
     } finally {
@@ -44,10 +27,10 @@ export default function WarehousesPage() {
 
   useEffect(() => {
     fetchWarehouses();
-  }, [currentPage, searchTerm, statusFilter]);
+  }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this warehouse?")) {
+    if (!confirm("Сигурни ли сте, че искате да изтриете този склад?")) {
       return;
     }
 
@@ -56,24 +39,7 @@ export default function WarehousesPage() {
       fetchWarehouses();
     } catch (error) {
       console.error("Error deleting warehouse:", error);
-      alert("Failed to delete warehouse");
-    }
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchWarehouses();
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-success-100 text-success-700 dark:bg-success-500/10 dark:text-success-400";
-      case "inactive":
-        return "bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400";
-      default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400";
+      alert("Неуспешно изтриване на склад");
     }
   };
 
@@ -83,67 +49,30 @@ export default function WarehousesPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-title-md font-bold text-gray-900 dark:text-white">
-            Warehouses & Stores
+            Складове
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage your warehouses and physical store locations
+            Управлявайте складови наличности и физически магазини.
           </p>
         </div>
         <Link
           href="/catalog/warehouses/new"
-          className="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
+          className="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
         >
-          Add Warehouse
+          <span>+</span>
+          Добави склад
         </Link>
-      </div>
-
-      {/* Filters */}
-      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <form onSubmit={handleSearch} className="flex flex-col gap-4 md:flex-row">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Search warehouses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
-          >
-            Search
-          </button>
-        </form>
-      </div>
-
-      {/* Results Summary */}
-      <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        Showing {warehouses.length} of {total} warehouses
       </div>
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         {loading ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Loading warehouses...
+            Зареждане...
           </div>
         ) : warehouses.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            No warehouses found
+            Няма намерени складове
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -151,38 +80,58 @@ export default function WarehousesPage() {
               <thead className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
                 <tr>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Name
+                    ID
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Address
+                    Снимка
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Phone
+                    Име
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Type
+                    Адрес
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Status
+                    Телефон
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Actions
+                    Физически магазин
+                  </th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Действия
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/[0.05]">
-                {warehouses.map((warehouse) => (
+                {warehouses.map((warehouse, index) => (
                   <tr
                     key={warehouse.id}
                     className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
                   >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      {index + 1}
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4">
-                      <Link
-                        href={`/catalog/warehouses/${warehouse.id}`}
-                        className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
-                      >
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+                        <svg
+                          className="h-6 w-6 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900 dark:text-white">
                         {warehouse.name}
-                      </Link>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       {warehouse.address || "-"}
@@ -194,35 +143,52 @@ export default function WarehousesPage() {
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                           warehouse.isPhysicalStore
-                            ? "bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400"
+                            ? "bg-success-100 text-success-700 dark:bg-success-500/10 dark:text-success-400"
                             : "bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
                         }`}
                       >
-                        {warehouse.isPhysicalStore ? "Physical Store" : "Warehouse"}
+                        {warehouse.isPhysicalStore ? "Да" : "Не"}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(
-                          warehouse.status
-                        )}`}
-                      >
-                        {warehouse.status}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/catalog/warehouses/${warehouse.id}`}
-                          className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                          className="text-gray-600 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                          title="Редактирай"
                         >
-                          Edit
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
                         </Link>
                         <button
                           onClick={() => handleDelete(warehouse.id)}
-                          className="text-error-600 hover:text-error-700 dark:text-error-400 dark:hover:text-error-300"
+                          className="text-gray-600 hover:text-error-600 dark:text-gray-400 dark:hover:text-error-400"
+                          title="Изтрий"
                         >
-                          Delete
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -233,31 +199,6 @@ export default function WarehousesPage() {
           </div>
         )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -58,7 +58,7 @@ export default function AttributeValueItem({
   };
 
   const handleDelete = () => {
-    if (!confirm("Are you sure you want to delete this value?")) {
+    if (!confirm("Сигурни ли сте, че искате да изтриете тази стойност?")) {
       return;
     }
     onDelete(value.id);
@@ -119,34 +119,67 @@ export default function AttributeValueItem({
             value={editData.name}
             onChange={(e) => setEditData({ ...editData, name: e.target.value })}
             className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            placeholder="Value name"
+            placeholder="Име на стойност"
           />
 
           {displayType === "color" && (
             <>
-              <input
-                type="color"
-                value={editData.colorHex}
-                onChange={(e) => setEditData({ ...editData, colorHex: e.target.value })}
-                className="h-10 w-16 rounded border border-gray-300 dark:border-gray-700"
-              />
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleTextureUpload}
-                  disabled={uploadingTexture}
-                  className="hidden"
-                  id={`edit-texture-${value.id}`}
+              {/* Small color picker with visual display */}
+              <div className="flex flex-col gap-1">
+                <div
+                  className="h-8 w-16 rounded border-2 border-gray-300 dark:border-gray-700"
+                  style={{ backgroundColor: editData.colorHex }}
+                  title={editData.colorHex}
                 />
-                <label
-                  htmlFor={`edit-texture-${value.id}`}
-                  className="cursor-pointer rounded bg-gray-200 px-3 py-2 text-xs hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-                >
-                  {uploadingTexture ? "Uploading..." : editData.textureImage ? "Change" : "Upload"}
-                </label>
-                {editData.textureImage && (
-                  <img src={editData.textureImage} alt="Texture" className="h-8 w-8 rounded border" />
+                <input
+                  type="color"
+                  value={editData.colorHex}
+                  onChange={(e) => setEditData({ ...editData, colorHex: e.target.value })}
+                  className="h-6 w-16 cursor-pointer rounded border border-gray-300 dark:border-gray-700"
+                />
+              </div>
+
+              {/* Large texture upload area */}
+              <div className="flex items-center gap-2">
+                {editData.textureImage ? (
+                  <div className="relative">
+                    <img
+                      src={editData.textureImage}
+                      alt="Texture"
+                      className="h-12 w-20 rounded border-2 border-gray-300 object-cover dark:border-gray-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditData({ ...editData, textureImage: "" })}
+                      className="absolute -right-1 -top-1 rounded-full bg-error-500 px-1.5 py-0.5 text-xs text-white hover:bg-error-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleTextureUpload}
+                      disabled={uploadingTexture}
+                      className="hidden"
+                      id={`edit-texture-${value.id}`}
+                    />
+                    <label
+                      htmlFor={`edit-texture-${value.id}`}
+                      className="flex h-12 w-20 cursor-pointer items-center justify-center rounded border-2 border-dashed border-gray-300 bg-white hover:border-brand-500 hover:bg-brand-50 dark:border-gray-700 dark:bg-gray-900"
+                    >
+                      <div className="text-center">
+                        <svg className="mx-auto h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-xs text-gray-400">
+                          {uploadingTexture ? "..." : "↑"}
+                        </p>
+                      </div>
+                    </label>
+                  </>
                 )}
               </div>
             </>
@@ -158,14 +191,14 @@ export default function AttributeValueItem({
             disabled={loading}
             className="rounded bg-brand-500 px-3 py-2 text-sm text-white hover:bg-brand-600"
           >
-            Save
+            Запази
           </button>
           <button
             type="button"
             onClick={() => setIsEditing(false)}
             className="rounded bg-gray-500 px-3 py-2 text-sm text-white hover:bg-gray-600"
           >
-            Cancel
+            Отказ
           </button>
         </div>
       ) : (
@@ -200,7 +233,7 @@ export default function AttributeValueItem({
               onClick={startEdit}
               className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400"
             >
-              Edit
+              Редактирай
             </button>
             <button
               type="button"
@@ -208,7 +241,7 @@ export default function AttributeValueItem({
               disabled={loading}
               className="text-sm text-error-600 hover:text-error-700 dark:text-error-400"
             >
-              Delete
+              Изтрий
             </button>
           </div>
         </>

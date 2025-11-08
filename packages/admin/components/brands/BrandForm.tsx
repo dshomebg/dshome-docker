@@ -11,8 +11,8 @@ import { brandsService, Brand } from "@/lib/services/brands.service";
 import { generateSlug } from "@/lib/utils/transliterate";
 
 const brandSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
+  name: z.string().min(1, "Името е задължително"),
+  slug: z.string().min(1, "Slug е задължителен"),
   logo: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(["active", "inactive"]),
@@ -56,8 +56,7 @@ export default function BrandForm({ brand, mode }: BrandFormProps) {
   const description = watch("description");
   const status = watch("status");
   const logo = watch("logo");
-  const metaTitle = watch("metaTitle");
-  const metaDescription = watch("metaDescription");
+  const slug = watch("slug");
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
@@ -85,226 +84,195 @@ export default function BrandForm({ brand, mode }: BrandFormProps) {
       setError(
         err.response?.data?.message ||
           err.message ||
-          "An error occurred while saving the brand"
+          "Грешка при запазване на марка"
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Character counter helpers
-  const getCharCountColor = (count: number, optimal: number, max: number) => {
-    if (count === 0) return "text-gray-500 dark:text-gray-400";
-    if (count > max) return "text-error-600 dark:text-error-400";
-    if (count >= optimal && count <= max) return "text-success-600 dark:text-success-400";
-    return "text-warning-600 dark:text-warning-400";
-  };
-
-  const metaTitleLength = metaTitle?.length || 0;
-  const metaDescriptionLength = metaDescription?.length || 0;
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <div className="p-4 md:p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-title-md font-bold text-gray-900 dark:text-white">
+          {mode === "create" ? "Нова марка" : "Редакция на марка"}
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Попълнете данните по-долу.
+        </p>
+      </div>
+
       {error && (
-        <div className="rounded-lg bg-error-50 p-4 text-sm text-error-700 dark:bg-error-500/10 dark:text-error-400">
+        <div className="mb-6 rounded-lg bg-error-50 p-4 text-error-700 dark:bg-error-500/10 dark:text-error-400">
           {error}
         </div>
       )}
 
-      {/* Basic Information */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-          Basic Information
-        </h2>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Left Column - Basic Info */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
+              <div className="space-y-4">
+                {/* Name */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Име на марката <span className="text-error-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("name")}
+                    onChange={handleNameChange}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    placeholder="Въведете име на марка"
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-error-600 dark:text-error-400">
+                      {errors.name.message}
+                    </p>
+                  )}
+                </div>
 
-        <div className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Name <span className="text-error-500">*</span>
-            </label>
-            <input
-              type="text"
-              {...register("name")}
-              onChange={handleNameChange}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              placeholder="Enter brand name"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-error-600 dark:text-error-400">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+                {/* Status Toggle */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Статус
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setValue("status", status === "active" ? "inactive" : "active")}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      status === "active"
+                        ? "bg-brand-500"
+                        : "bg-gray-300 dark:bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        status === "active" ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {status === "active" ? "Активна" : "Неактивна"}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-          {/* Slug */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Slug <span className="text-error-500">*</span>
-            </label>
-            <input
-              type="text"
-              {...register("slug")}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              placeholder="brand-slug"
-            />
-            {errors.slug && (
-              <p className="mt-1 text-sm text-error-600 dark:text-error-400">
-                {errors.slug.message}
-              </p>
-            )}
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              URL-friendly version of the name (lowercase, hyphens only)
-            </p>
-          </div>
-
-          {/* Status Toggle */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
-            </label>
-            <button
-              type="button"
-              onClick={() => setValue("status", status === "active" ? "inactive" : "active")}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                status === "active"
-                  ? "bg-success-500"
-                  : "bg-gray-300 dark:bg-gray-700"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  status === "active" ? "translate-x-6" : "translate-x-1"
-                }`}
+            {/* Description WYSIWYG */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Описание
+              </label>
+              <TiptapEditor
+                content={description || ""}
+                onChange={(content) => setValue("description", content)}
+                placeholder="Въведете описание на марката..."
               />
-            </button>
-            <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
-              {status === "active" ? "Active" : "Inactive"}
-            </span>
+              {errors.description && (
+                <p className="mt-1 text-sm text-error-600 dark:text-error-400">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Logo Upload */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Logo
-            </label>
-            <ImageUpload
-              value={logo}
-              onChange={(url) => setValue("logo", url)}
-              onRemove={() => setValue("logo", "")}
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Description
-            </label>
-            <TiptapEditor
-              content={description || ""}
-              onChange={(content) => setValue("description", content)}
-              placeholder="Enter brand description..."
-            />
-            {errors.description && (
-              <p className="mt-1 text-sm text-error-600 dark:text-error-400">
-                {errors.description.message}
+          {/* Right Column - Logo and SEO */}
+          <div className="space-y-6">
+            {/* Logo */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Лого на марката
+              </label>
+              <ImageUpload
+                value={logo}
+                onChange={(url) => setValue("logo", url)}
+                onRemove={() => setValue("logo", "")}
+              />
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Провлачете снимка тук, или разгледайте файловете
               </p>
-            )}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                PNG, JPG, GIF до 10MB
+              </p>
+            </div>
+
+            {/* SEO */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
+              <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+                SEO
+              </h3>
+              <div className="space-y-4">
+                {/* Meta Title */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Мета заглавие
+                  </label>
+                  <input
+                    type="text"
+                    {...register("metaTitle")}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    placeholder="SEO заглавие"
+                  />
+                </div>
+
+                {/* Meta Description */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Мета описание
+                  </label>
+                  <textarea
+                    {...register("metaDescription")}
+                    rows={3}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    placeholder="SEO описание"
+                  />
+                </div>
+
+                {/* URL / Slug */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    URL адрес
+                  </label>
+                  <input
+                    type="text"
+                    {...register("slug")}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    placeholder="brand-slug"
+                  />
+                  {errors.slug && (
+                    <p className="mt-1 text-sm text-error-600 dark:text-error-400">
+                      {errors.slug.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* SEO Information */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-          SEO Information
-        </h2>
-
-        <div className="space-y-4">
-          {/* Meta Title with Character Counter */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Meta Title
-              </label>
-              <span className={`text-xs font-medium ${getCharCountColor(metaTitleLength, 50, 70)}`}>
-                {metaTitleLength}/70 {metaTitleLength >= 50 && metaTitleLength <= 70 && "✓"}
-              </span>
-            </div>
-            <input
-              type="text"
-              {...register("metaTitle")}
-              maxLength={70}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              placeholder="SEO title for search engines (50-60 chars optimal)"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Optimal: 50-60 characters, Maximum: 70 characters
-            </p>
-          </div>
-
-          {/* Meta Description with Character Counter */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Meta Description
-              </label>
-              <span className={`text-xs font-medium ${getCharCountColor(metaDescriptionLength, 150, 160)}`}>
-                {metaDescriptionLength}/160 {metaDescriptionLength >= 150 && metaDescriptionLength <= 160 && "✓"}
-              </span>
-            </div>
-            <textarea
-              {...register("metaDescription")}
-              maxLength={160}
-              rows={3}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              placeholder="SEO description for search engines (150-160 chars optimal)"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Optimal: 150-160 characters, Maximum: 160 characters
-            </p>
-          </div>
-
-          {/* Canonical URL */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Canonical URL
-            </label>
-            <input
-              type="text"
-              {...register("canonicalUrl")}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              placeholder="https://example.com/brands/brand-name"
-            />
-          </div>
+        {/* Form Actions */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push("/catalog/brands")}
+            className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:focus:ring-gray-800"
+            disabled={loading}
+          >
+            Отказ
+          </button>
+          <button
+            type="submit"
+            className="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
+            disabled={loading}
+          >
+            {loading ? "Запазва се..." : "Запази"}
+          </button>
         </div>
-      </div>
-
-      {/* Form Actions */}
-      <div className="flex items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => router.push("/catalog/brands")}
-          className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:ring-gray-700"
-          disabled={loading}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              Saving...
-            </>
-          ) : (
-            <>{mode === "create" ? "Create Brand" : "Update Brand"}</>
-          )}
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

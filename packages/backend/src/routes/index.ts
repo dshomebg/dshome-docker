@@ -10,6 +10,7 @@ import categoriesRoutes from './categories.routes';
 import catalogSettingsRoutes from './catalog-settings.routes';
 import facetedNavigationRoutes from './faceted-navigation.routes';
 import uploadRoutes from './upload.routes';
+import productsRoutes from './products.routes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/categories', categoriesRoutes);
 router.use('/catalog-settings', catalogSettingsRoutes);
 router.use('/faceted-navigation', facetedNavigationRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/products', productsRoutes);
 
 export default router;

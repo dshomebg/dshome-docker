@@ -51,6 +51,7 @@ export const attributesService = {
     page?: number;
     limit?: number;
     status?: 'active' | 'inactive';
+    include?: string;
   }): Promise<AttributeGroupsResponse> => {
     const response = await apiClient.get('/attributes/groups', { params });
     return response.data;

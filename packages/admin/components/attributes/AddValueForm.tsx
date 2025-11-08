@@ -83,7 +83,7 @@ export default function AddValueForm({
   return (
     <div className="rounded-lg border border-brand-300 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-500/10">
       <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-        Add New Value
+        Добави нова стойност
       </h3>
       <div className="space-y-3">
         <input
@@ -91,52 +91,78 @@ export default function AddValueForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-          placeholder="Value name (e.g., Red, 16GB, Large)"
+          placeholder='напр. "Червен", "16GB", "Голям"'
         />
 
         {displayType === "color" && (
           <div className="flex gap-3">
-            <div className="flex-1">
+            {/* Small color picker with visual display */}
+            <div className="w-24">
               <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
-                Color
+                Цвят
               </label>
-              <input
-                type="color"
-                value={colorHex}
-                onChange={(e) => setColorHex(e.target.value)}
-                className="h-10 w-full rounded border border-gray-300 dark:border-gray-700"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
-                Texture Image (optional)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleTextureUpload}
-                  disabled={uploadingTexture}
-                  className="hidden"
-                  id="new-texture-upload"
+              <div className="flex flex-col gap-2">
+                {/* Visual color display */}
+                <div
+                  className="h-10 w-full rounded border-2 border-gray-300 dark:border-gray-700"
+                  style={{ backgroundColor: colorHex }}
+                  title={colorHex}
                 />
-                <label
-                  htmlFor="new-texture-upload"
-                  className="cursor-pointer rounded bg-gray-200 px-3 py-2 text-xs hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-                >
-                  {uploadingTexture ? "Uploading..." : textureImage ? "Change Image" : "Upload Image"}
-                </label>
-                {textureImage && (
-                  <div className="flex items-center gap-2">
-                    <img src={textureImage} alt="Preview" className="h-10 w-10 rounded border" />
+                {/* Hidden color picker input */}
+                <input
+                  type="color"
+                  value={colorHex}
+                  onChange={(e) => setColorHex(e.target.value)}
+                  className="h-8 w-full cursor-pointer rounded border border-gray-300 dark:border-gray-700"
+                />
+              </div>
+            </div>
+
+            {/* Large texture image upload area */}
+            <div className="flex-1">
+              <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">
+                Текстура/Изображение (опционално)
+              </label>
+              <div className="flex flex-col gap-2">
+                {textureImage ? (
+                  <div className="relative">
+                    <img
+                      src={textureImage}
+                      alt="Preview"
+                      className="h-20 w-full rounded border-2 border-gray-300 object-cover dark:border-gray-700"
+                    />
                     <button
                       type="button"
                       onClick={() => setTextureImage("")}
-                      className="text-xs text-error-600 hover:text-error-700"
+                      className="absolute right-2 top-2 rounded-full bg-error-500 px-2 py-1 text-xs text-white hover:bg-error-600"
                     >
-                      Remove
+                      ✕ Премахни
                     </button>
                   </div>
+                ) : (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleTextureUpload}
+                      disabled={uploadingTexture}
+                      className="hidden"
+                      id="new-texture-upload"
+                    />
+                    <label
+                      htmlFor="new-texture-upload"
+                      className="flex h-20 cursor-pointer items-center justify-center rounded border-2 border-dashed border-gray-300 bg-white hover:border-brand-500 hover:bg-brand-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-brand-400"
+                    >
+                      <div className="text-center">
+                        <svg className="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {uploadingTexture ? "Качва се..." : "Качи изображение"}
+                        </p>
+                      </div>
+                    </label>
+                  </>
                 )}
               </div>
             </div>
@@ -150,14 +176,14 @@ export default function AddValueForm({
             disabled={loading || !name.trim()}
             className="rounded bg-brand-500 px-4 py-2 text-sm text-white hover:bg-brand-600 disabled:opacity-50"
           >
-            Add Value
+            Добави
           </button>
           <button
             type="button"
             onClick={handleCancel}
             className="rounded bg-gray-500 px-4 py-2 text-sm text-white hover:bg-gray-600"
           >
-            Cancel
+            Отказ
           </button>
         </div>
       </div>

@@ -85,8 +85,8 @@ export const createWarehouse = async (req: Request, res: Response, next: NextFun
       phone,
       workingHours,
       url,
-      latitude,
-      longitude,
+      latitude: latitude && latitude !== '' ? latitude : null,
+      longitude: longitude && longitude !== '' ? longitude : null,
       isPhysicalStore: isPhysicalStore || false,
       status: status || 'active',
       updatedAt: new Date()
@@ -119,8 +119,8 @@ export const updateWarehouse = async (req: Request, res: Response, next: NextFun
         phone,
         workingHours,
         url,
-        latitude,
-        longitude,
+        latitude: latitude && latitude !== '' ? latitude : null,
+        longitude: longitude && longitude !== '' ? longitude : null,
         isPhysicalStore,
         status,
         updatedAt: new Date()

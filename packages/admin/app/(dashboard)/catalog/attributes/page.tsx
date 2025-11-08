@@ -21,6 +21,7 @@ export default function AttributesPage() {
       const params: any = {
         page: currentPage,
         limit: 20,
+        include: 'values', // Include values in the response
       };
 
       if (searchTerm) {
@@ -47,7 +48,7 @@ export default function AttributesPage() {
   }, [currentPage, searchTerm, statusFilter]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this attribute group? All associated values will also be deleted.")) {
+    if (!confirm("Сигурни ли сте, че искате да изтриете тази група атрибути? Всички свързани стойности също ще бъдат изтрити.")) {
       return;
     }
 
@@ -56,7 +57,7 @@ export default function AttributesPage() {
       fetchAttributeGroups();
     } catch (error) {
       console.error("Error deleting attribute group:", error);
-      alert("Failed to delete attribute group");
+      alert("Неуспешно изтриване на група атрибути");
     }
   };
 
@@ -80,11 +81,11 @@ export default function AttributesPage() {
   const getDisplayTypeLabel = (displayType: string) => {
     switch (displayType) {
       case "dropdown":
-        return "Dropdown";
+        return "Падащо меню";
       case "radio":
-        return "Radio Button";
+        return "Бутон радио";
       case "color":
-        return "Color";
+        return "Цвят";
       default:
         return displayType;
     }
@@ -96,17 +97,17 @@ export default function AttributesPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-title-md font-bold text-gray-900 dark:text-white">
-            Attributes
+            Атрибути
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage product attributes for creating combinations
+            Управлявайте атрибутите на продуктите за създаване на комбинации
           </p>
         </div>
         <Link
           href="/catalog/attributes/new"
           className="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
         >
-          Add Attribute Group
+          Добави група атрибути
         </Link>
       </div>
 
@@ -116,7 +117,7 @@ export default function AttributesPage() {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search attribute groups..."
+              placeholder="Търсене на групи атрибути..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
@@ -130,33 +131,33 @@ export default function AttributesPage() {
             }}
             className="rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">Всички статуси</option>
+            <option value="active">Активен</option>
+            <option value="inactive">Неактивен</option>
           </select>
           <button
             type="submit"
             className="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-brand-800"
           >
-            Search
+            Търси
           </button>
         </form>
       </div>
 
       {/* Results Summary */}
       <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        Showing {attributeGroups.length} of {total} attribute groups
+        Показани {attributeGroups.length} от {total} групи атрибути
       </div>
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         {loading ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            Loading attribute groups...
+            Зареждане на групи атрибути...
           </div>
         ) : attributeGroups.length === 0 ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            No attribute groups found
+            Няма намерени групи атрибути
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -164,16 +165,19 @@ export default function AttributesPage() {
               <thead className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
                 <tr>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Name
+                    Име
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Display Type
+                    Тип
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Status
+                    Стойности
                   </th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                    Actions
+                    Статус
+                  </th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Действия
                   </th>
                 </tr>
               </thead>
@@ -183,16 +187,46 @@ export default function AttributesPage() {
                     key={group.id}
                     className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
                   >
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <Link
-                        href={`/catalog/attributes/${group.id}`}
-                        className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
-                      >
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900 dark:text-white">
                         {group.name}
-                      </Link>
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                       {getDisplayTypeLabel(group.displayType)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <div className="flex flex-wrap gap-2">
+                        {group.values && group.values.length > 0 ? (
+                          group.values.slice(0, 3).map((val) => (
+                            <span
+                              key={val.id}
+                              className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-500/10 dark:text-gray-300"
+                            >
+                              {group.displayType === 'color' && (val.textureImage || val.colorHex) && (
+                                val.textureImage ? (
+                                  <img src={val.textureImage} alt="" className="h-3 w-3 rounded-full" />
+                                ) : (
+                                  <div
+                                    className="h-3 w-3 rounded-full border border-gray-300"
+                                    style={{ backgroundColor: val.colorHex }}
+                                  />
+                                )
+                              )}
+                              {val.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500">
+                            Няма стойности
+                          </span>
+                        )}
+                        {group.values && group.values.length > 3 && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            +{group.values.length - 3} още
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <span
@@ -200,22 +234,28 @@ export default function AttributesPage() {
                           group.status
                         )}`}
                       >
-                        {group.status}
+                        {group.status === 'active' ? 'Активен' : 'Неактивен'}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                    <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/catalog/attributes/${group.id}`}
-                          className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                          className="text-gray-600 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                          title="Редактирай"
                         >
-                          Edit
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
                         </Link>
                         <button
                           onClick={() => handleDelete(group.id)}
-                          className="text-error-600 hover:text-error-700 dark:text-error-400 dark:hover:text-error-300"
+                          className="text-gray-600 hover:text-error-600 dark:text-gray-400 dark:hover:text-error-400"
+                          title="Изтрий"
                         >
-                          Delete
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -235,10 +275,10 @@ export default function AttributesPage() {
             disabled={currentPage === 1}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
           >
-            Previous
+            Предишна
           </button>
           <span className="text-sm text-gray-700 dark:text-gray-300">
-            Page {currentPage} of {totalPages}
+            Страница {currentPage} от {totalPages}
           </span>
           <button
             onClick={() =>
@@ -247,7 +287,7 @@ export default function AttributesPage() {
             disabled={currentPage === totalPages}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
           >
-            Next
+            Следваща
           </button>
         </div>
       )}
