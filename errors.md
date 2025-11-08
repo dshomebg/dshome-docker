@@ -4,7 +4,7 @@
 
 ## Общ проблем: Деплоймънт без Docker
 
-**Проблем:** Първоначално планът беше да използваме Docker image, който работи на локалния компютър и после се качва на production сървъра. Вместо това в момента правим:
+**Проблем:** Първоначално планът беше да използваме Docker image, който работи на локалния компютър и после се качва на production сървъра. Вместо това правихме:
 - SSH към production сървъра (157.90.129.12)
 - `git pull` за теглене на кода
 - `pnpm build` за компилиране директно на сървъра
@@ -16,12 +16,30 @@
 - TypeScript strict mode може да показва различни грешки
 - ESLint правилата се прилагат по-строго в production build
 
-**Решение (TODO):**
-- Внедряване на Docker deployment както е планирано
-- Build на Docker image локално
-- Push на готов image в registry
-- Pull и run на production сървъра
-- Това гарантира: "работи на локално = работи на production"
+**Решение (✅ ВНЕДРЕНО):**
+- ✅ Създадени Dockerfile за backend и admin
+- ✅ Създаден docker-compose.prod.yml за production
+- ✅ Автоматичен deployment скрипт: `./deploy-docker.sh`
+- ✅ Запазване на database (external PostgreSQL)
+- ✅ Запазване на uploads (volume mount)
+- ✅ Пълна документация в [DOCKER-DEPLOYMENT.md](DOCKER-DEPLOYMENT.md)
+
+**Как работи сега:**
+```bash
+# Локално
+docker build → test → ./deploy-docker.sh
+
+# Production
+docker run (с external DB и volume за uploads)
+```
+
+**Гарантира:** "работи на локално = работи на production" + **НИКАКВИ ДАННИ НЕ СЕ ГУБЯТ**
+
+**Важно за данните:**
+- База данни: Използва съществуващата PostgreSQL на хоста (не в Docker)
+- Uploads: Volume mount на `/opt/dshome/packages/backend/uploads`
+- При deployment: Данните остават напълно непокътнати
+- Rollback: Винаги можете да се върнете към PM2 без загуба на данни
 
 ---
 
