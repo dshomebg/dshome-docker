@@ -12,7 +12,7 @@ import facetedNavigationRoutes from './faceted-navigation.routes';
 import uploadRoutes from './upload.routes';
 import productsRoutes from './products.routes';
 
-const router = Router();
+const router: Router = Router();
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);

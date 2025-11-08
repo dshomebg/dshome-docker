@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as featuresController from '../controllers/features.controller';
 
-const router = Router();
+const router: Router = Router();
 
 // Feature Groups
 router.get('/groups', featuresController.getFeatureGroups);

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { uploadImage as uploadImageMiddleware } from '../middleware/upload.middleware';
 import * as uploadController from '../controllers/upload.controller';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /api/upload/image

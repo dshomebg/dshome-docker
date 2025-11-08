@@ -9,7 +9,7 @@ import {
 } from '../controllers/suppliers.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication
 // Temporarily disabled for development

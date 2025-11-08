@@ -12,7 +12,7 @@ import {
   reorderFilterTemplateItems
 } from '../controllers/faceted-navigation.controller';
 
-const router = Router();
+const router: Router = Router();
 
 // Filter template routes
 router.get('/', getFilterTemplates);

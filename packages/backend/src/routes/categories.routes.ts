@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as categoriesController from '../controllers/categories.controller';
 
-const router = Router();
+const router: Router = Router();
 
 // Category routes
 router.get('/', categoriesController.getCategories);
