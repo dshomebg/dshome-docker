@@ -94,7 +94,7 @@ export const getCategory = async (req: Request, res: Response, next: NextFunctio
       .where(eq(categories.id, id));
 
     if (!category) {
-      throw new AppError('Category not found', 404);
+      throw new AppError(404, 'Category not found');
     }
 
     logger.info(`Fetched category: ${category.name}`);
@@ -119,7 +119,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
     } = req.body;
 
     if (!name || !slug) {
-      throw new AppError('Name and slug are required', 400);
+      throw new AppError(400, 'Name and slug are required');
     }
 
     // Check if slug already exists
@@ -129,7 +129,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
       .where(eq(categories.slug, slug));
 
     if (existing) {
-      throw new AppError('Slug already exists', 400);
+      throw new AppError(400, 'Slug already exists');
     }
 
     const [newCategory] = await db
@@ -175,12 +175,12 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
       .where(eq(categories.id, id));
 
     if (!existing) {
-      throw new AppError('Category not found', 404);
+      throw new AppError(404, 'Category not found');
     }
 
     // Prevent circular reference
     if (parentId === id) {
-      throw new AppError('Category cannot be its own parent', 400);
+      throw new AppError(400, 'Category cannot be its own parent');
     }
 
     // Check if slug is taken by another category
@@ -191,7 +191,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         .where(eq(categories.slug, slug));
 
       if (slugExists && slugExists.id !== id) {
-        throw new AppError('Slug already exists', 400);
+        throw new AppError(400, 'Slug already exists');
       }
     }
 
@@ -229,7 +229,7 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       .where(eq(categories.id, id));
 
     if (!category) {
-      throw new AppError('Category not found', 404);
+      throw new AppError(404, 'Category not found');
     }
 
     // Check if category has children
@@ -239,7 +239,7 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
       .where(eq(categories.parentId, id));
 
     if (children.length > 0) {
-      throw new AppError('Cannot delete category with subcategories', 400);
+      throw new AppError(400, 'Cannot delete category with subcategories');
     }
 
     await db
