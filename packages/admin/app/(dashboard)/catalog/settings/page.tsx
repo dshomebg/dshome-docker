@@ -146,8 +146,6 @@ export default function CatalogSettingsPage() {
 
   return (
     <>
-      <Breadcrumb pageName="Настройки на каталога" />
-
       <div className="grid grid-cols-1 gap-9">
         {/* Catalog Settings Form */}
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -189,7 +187,7 @@ export default function CatalogSettingsPage() {
 
               <div className="mb-4.5">
                 <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-                  Период "Нов продукт" (дни)
+                  Период &quot;Нов продукт&quot; (дни)
                 </label>
                 <input
                   type="number"

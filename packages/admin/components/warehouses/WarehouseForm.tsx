@@ -267,7 +267,7 @@ export default function WarehouseForm({ warehouse, mode }: WarehouseFormProps) {
                 Физически магазин
               </label>
               <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
-                Ако е активно, ще се показва като опция "Вземи от магазин".
+                Ако е активно, ще се показва като опция &quot;Вземи от магазин&quot;.
               </p>
               <div className="flex items-center">
                 <input

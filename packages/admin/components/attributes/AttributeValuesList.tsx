@@ -181,7 +181,7 @@ export default function AttributeValuesList({
         {values.length === 0 && !isAdding ? (
           <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center dark:border-gray-700">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Няма добавени стойности. Кликнете "Добави" за да добавите първата стойност.
+              Няма добавени стойности. Кликнете &quot;Добави&quot; за да добавите първата стойност.
             </p>
           </div>
         ) : (

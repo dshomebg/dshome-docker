@@ -88,7 +88,7 @@ export default function FeatureValuesList({
       <div className="space-y-2">
         {values.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No values added yet. Click "Add Value" to create one.
+            No values added yet. Click &quot;Add Value&quot; to create one.
           </p>
         ) : (
           values.map((value, index) => (

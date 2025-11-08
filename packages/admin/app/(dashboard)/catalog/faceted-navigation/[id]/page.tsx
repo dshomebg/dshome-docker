@@ -361,9 +361,9 @@ export default function TemplateDetailPage() {
                 />
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   Примери за конфигурация:
-                  <br />• Цена: {"{"}"priceDisplayType": "slider"{"}"}
-                  <br />• Характеристики: {"{"}"featureGroupIds": ["uuid1", "uuid2"]{"}"}
-                  <br />• Атрибути: {"{"}"attributeGroupIds": ["uuid1"]{"}"}
+                  <br />• Цена: {'{'}priceDisplayType: &quot;slider&quot;{'}'}
+                  <br />• Характеристики: {'{'}featureGroupIds: [&quot;uuid1&quot;, &quot;uuid2&quot;]{'}'}
+                  <br />• Атрибути: {'{'}attributeGroupIds: [&quot;uuid1&quot;]{'}'}
                 </p>
               </div>
 

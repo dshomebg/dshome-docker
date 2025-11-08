@@ -27,7 +27,8 @@
       "Bash(pnpm tsx:*)",
       "Bash(cmd //c taskkill //PID 28980 //F)",
       "Bash(git restore:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && cd packages/admin && pnpm install && pnpm build\")"
     ],
     "deny": [],
     "ask": []
