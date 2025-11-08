@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { catalogSettingsService, type CatalogSettings, type DeliveryTimeTemplate } from "@/lib/services/catalog-settings.service";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 export default function CatalogSettingsPage() {
   const [settings, setSettings] = useState<CatalogSettings | null>(null);

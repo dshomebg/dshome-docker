@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { facetedNavigationService, type FilterTemplate, type TemplateType } from "@/lib/services/faceted-navigation.service";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 export default function FacetedNavigationPage() {
   const router = useRouter();

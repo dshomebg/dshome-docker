@@ -8,7 +8,6 @@ import {
   type FilterTemplateItem,
   type FilterType
 } from "@/lib/services/faceted-navigation.service";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 export default function TemplateDetailPage() {
   const params = useParams();
@@ -180,13 +179,6 @@ export default function TemplateDetailPage() {
 
   return (
     <>
-      <Breadcrumb
-        pageName={`Конфигуриране: ${template.name}`}
-        links={[
-          { name: "Филтри", href: "/catalog/faceted-navigation" },
-        ]}
-      />
-
       <div className="grid grid-cols-1 gap-9">
         {/* Template Info */}
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
