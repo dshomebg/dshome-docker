@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: ./packages/backend/Dockerfile
+    container_name: dshome-backend-prod
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Database connection (uses EXISTING PostgreSQL on host)
+      DATABASE_URL: ${DATABASE_URL}
+      # Other env vars
+      NODE_ENV: production
+      PORT: 3000
+    volumes:
+      # IMPORTANT: Mount uploads directory to preserve user files
+      - ./packages/backend/uploads:/app/packages/backend/uploads
+      # Mount .env file
+      - ./.env:/app/.env:ro
+    networks:
+      - dshome-network
+    # Connect to host PostgreSQL (not in Docker)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Admin Panel
+  admin:
+    build:
+      context: .
+      dockerfile: ./packages/admin/Dockerfile
+    container_name: dshome-admin-prod
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    volumes:
+      # Mount .env file
+      - ./.env:/app/.env:ro
+    networks:
+      - dshome-network
+    depends_on:
+      - backend
+
+networks:
+  dshome-network:
+    driver: bridge
+
+# IMPORTANT: No database volumes here!
+# We use the existing PostgreSQL installation on the host machine.
+# The uploads volume preserves all user-uploaded files.

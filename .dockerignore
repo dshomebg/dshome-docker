@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+dist
+build
+*.tsbuildinfo
+
+# Environment files (will be mounted separately)
+.env.local
+.env.development
+.env.test
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs
+README.md
+errors.md
+prompt
+
+# Development
+dev-assets
+docker/docker-compose.dev.yml
+
+# Temp
+tmp
+temp
+
+# Test
+coverage
+.nyc_output
