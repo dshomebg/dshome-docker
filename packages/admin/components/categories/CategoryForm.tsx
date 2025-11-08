@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { categoriesService, Category } from "@/lib/services/categories.service";
 import CategoryTreeSelect from "./CategoryTreeSelect";
 import ImageUpload from "../ui/ImageUpload";
+import SeoForm from "../seo/SeoForm";
+import { SeoFormData } from "@dshome/shared/types/seo";
 
 interface CategoryFormProps {
   category?: Category;
@@ -19,10 +21,21 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
   const [image, setImage] = useState(category?.image || "");
   const [parentId, setParentId] = useState<string | null>(category?.parentId || null);
   const [status, setStatus] = useState<"active" | "inactive">(category?.status || "active");
-  const [metaTitle, setMetaTitle] = useState(category?.metaTitle || "");
-  const [metaDescription, setMetaDescription] = useState(category?.metaDescription || "");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // SEO data
+  const [seoData, setSeoData] = useState<SeoFormData>({
+    metaTitle: category?.metaTitle || "",
+    metaDescription: category?.metaDescription || "",
+    metaKeywords: category?.metaKeywords || "",
+    ogTitle: category?.ogTitle || "",
+    ogDescription: category?.ogDescription || "",
+    ogImage: category?.ogImage || "",
+    canonicalUrl: category?.canonicalUrl || "",
+    robotsIndex: category?.robotsIndex !== false,
+    robotsFollow: category?.robotsFollow !== false,
+  });
 
   useEffect(() => {
     fetchCategories();
@@ -65,8 +78,16 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
         image: image || undefined,
         parentId: parentId || undefined,
         status,
-        metaTitle: metaTitle || undefined,
-        metaDescription: metaDescription || undefined,
+        // SEO fields
+        metaTitle: seoData.metaTitle || undefined,
+        metaDescription: seoData.metaDescription || undefined,
+        metaKeywords: seoData.metaKeywords || undefined,
+        ogTitle: seoData.ogTitle || undefined,
+        ogDescription: seoData.ogDescription || undefined,
+        ogImage: seoData.ogImage || undefined,
+        canonicalUrl: seoData.canonicalUrl || undefined,
+        robotsIndex: seoData.robotsIndex,
+        robotsFollow: seoData.robotsFollow,
       };
 
       if (mode === "create") {
@@ -190,38 +211,13 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
           </div>
         </div>
 
+        {/* SEO Settings using SeoForm component */}
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-            SEO Settings
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Meta Title
-              </label>
-              <input
-                type="text"
-                value={metaTitle}
-                onChange={(e) => setMetaTitle(e.target.value)}
-                placeholder="SEO title for search engines"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Meta Description
-              </label>
-              <textarea
-                value={metaDescription}
-                onChange={(e) => setMetaDescription(e.target.value)}
-                placeholder="SEO description for search engines"
-                rows={3}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-              />
-            </div>
-          </div>
+          <SeoForm
+            data={seoData}
+            onChange={setSeoData}
+            entityName={name}
+          />
         </div>
 
         <div className="flex gap-3">

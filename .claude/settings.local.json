@@ -12,7 +12,22 @@
       "Bash(taskkill:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(pnpm dev:*)"
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm drizzle-kit generate:*)",
+      "Bash(pnpm drizzle-kit:*)",
+      "Bash(pnpm db:migrate:*)",
+      "Bash(pnpm db:generate:*)",
+      "Bash(printf:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(psql:*)",
+      "Bash(tsx:*)",
+      "Bash(pnpm tsx:*)",
+      "Bash(cmd //c taskkill //PID 28980 //F)",
+      "Bash(git restore:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
