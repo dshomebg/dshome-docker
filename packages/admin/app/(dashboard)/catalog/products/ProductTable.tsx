@@ -248,8 +248,7 @@ export default function ProductTable({
           </TableCell>
 
           {/* Действия column - no filter */}
-          <TableCell className="px-6 py-2">
-          </TableCell>
+          <TableCell className="px-6 py-2">{null}</TableCell>
         </TableRow>
       </TableHeader>
       <TableBody>
