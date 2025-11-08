@@ -12,13 +12,44 @@ interface ProductTableProps {
   products: Product[];
   loading: boolean;
   onDelete: (id: string, name: string) => void;
+  selectedProducts: string[];
+  onSelectAll: (checked: boolean) => void;
+  onSelectProduct: (productId: string, checked: boolean) => void;
+  filters: {
+    name: string;
+    sku: string;
+    category: string;
+    priceFrom: string;
+    priceTo: string;
+    quantityFrom: string;
+    quantityTo: string;
+    status: "all" | "active" | "inactive" | "archived";
+  };
+  onFiltersChange: {
+    onNameChange: (value: string) => void;
+    onSkuChange: (value: string) => void;
+    onCategoryChange: (value: string) => void;
+    onPriceFromChange: (value: string) => void;
+    onPriceToChange: (value: string) => void;
+    onQuantityFromChange: (value: string) => void;
+    onQuantityToChange: (value: string) => void;
+    onStatusChange: (value: "all" | "active" | "inactive" | "archived") => void;
+  };
 }
 
 export default function ProductTable({
   products,
   loading,
   onDelete,
+  selectedProducts,
+  onSelectAll,
+  onSelectProduct,
+  filters,
+  onFiltersChange,
 }: ProductTableProps) {
+  const allSelected = products.length > 0 && selectedProducts.length === products.length;
+  const someSelected = selectedProducts.length > 0 && selectedProducts.length < products.length;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -27,18 +58,34 @@ export default function ProductTable({
     );
   }
 
-  if (products.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-gray-500 dark:text-gray-400">Няма намерени продукти</p>
-      </div>
-    );
-  }
-
   return (
     <Table>
       <TableHeader className="border-t border-gray-200 dark:border-white/[0.05]">
         <TableRow>
+          <TableCell
+            isHeader
+            className="px-6 py-3 border-r border-gray-200 dark:border-white/[0.05]"
+          >
+            <input
+              type="checkbox"
+              checked={allSelected}
+              ref={(input) => {
+                if (input) {
+                  input.indeterminate = someSelected;
+                }
+              }}
+              onChange={(e) => onSelectAll(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800"
+            />
+          </TableCell>
+          <TableCell
+            isHeader
+            className="px-6 py-3 border-r border-gray-200 dark:border-white/[0.05]"
+          >
+            <p className="font-semibold text-gray-700 text-sm dark:text-gray-300">
+              ID
+            </p>
+          </TableCell>
           <TableCell
             isHeader
             className="px-6 py-3 border-r border-gray-200 dark:border-white/[0.05]"
@@ -101,13 +148,136 @@ export default function ProductTable({
             </p>
           </TableCell>
         </TableRow>
+
+        {/* Filter Row */}
+        <TableRow className="bg-gray-50 dark:bg-white/[0.02]">
+          {/* Checkbox column - no filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">{null}</TableCell>
+
+          {/* ID column - no filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">{null}</TableCell>
+
+          {/* Снимка column - no filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">{null}</TableCell>
+
+          {/* Име filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">
+            <input
+              type="text"
+              placeholder="Търси по име..."
+              value={filters.name}
+              onChange={(e) => onFiltersChange.onNameChange(e.target.value)}
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            />
+          </TableCell>
+
+          {/* SKU filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">
+            <input
+              type="text"
+              placeholder="Търси по реф..."
+              value={filters.sku}
+              onChange={(e) => onFiltersChange.onSkuChange(e.target.value)}
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            />
+          </TableCell>
+
+          {/* Категория filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">
+            <input
+              type="text"
+              placeholder="Търси по категория..."
+              value={filters.category}
+              onChange={(e) => onFiltersChange.onCategoryChange(e.target.value)}
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            />
+          </TableCell>
+
+          {/* Цена filter (От/До) */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">
+            <div className="flex flex-col gap-1">
+              <input
+                type="number"
+                placeholder="От"
+                value={filters.priceFrom}
+                onChange={(e) => onFiltersChange.onPriceFromChange(e.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              />
+              <input
+                type="number"
+                placeholder="До"
+                value={filters.priceTo}
+                onChange={(e) => onFiltersChange.onPriceToChange(e.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              />
+            </div>
+          </TableCell>
+
+          {/* Наличност filter (От/До) */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">
+            <div className="flex flex-col gap-1">
+              <input
+                type="number"
+                placeholder="От"
+                value={filters.quantityFrom}
+                onChange={(e) => onFiltersChange.onQuantityFromChange(e.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              />
+              <input
+                type="number"
+                placeholder="До"
+                value={filters.quantityTo}
+                onChange={(e) => onFiltersChange.onQuantityToChange(e.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              />
+            </div>
+          </TableCell>
+
+          {/* Статус filter */}
+          <TableCell className="px-6 py-2 border-r border-gray-200 dark:border-white/[0.05]">
+            <select
+              value={filters.status}
+              onChange={(e) => onFiltersChange.onStatusChange(e.target.value as any)}
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            >
+              <option value="all">Всички</option>
+              <option value="active">Активни</option>
+              <option value="inactive">Неактивни</option>
+              <option value="archived">Архивирани</option>
+            </select>
+          </TableCell>
+
+          {/* Действия column - no filter */}
+          <TableCell className="px-6 py-2">
+          </TableCell>
+        </TableRow>
       </TableHeader>
       <TableBody>
-        {products.map((product) => (
-          <TableRow
-            key={product.id}
-            className="border-t border-gray-200 hover:bg-gray-50 dark:border-white/[0.05] dark:hover:bg-white/[0.02]"
-          >
+        {products.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={9} className="py-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400">Няма намерени продукти</p>
+            </TableCell>
+          </TableRow>
+        ) : (
+          products.map((product, index) => (
+            <TableRow
+              key={product.id}
+              className="border-t border-gray-200 hover:bg-gray-50 dark:border-white/[0.05] dark:hover:bg-white/[0.02]"
+            >
+            <TableCell className="px-6 py-4 border-r border-gray-200 dark:border-white/[0.05]">
+              <input
+                type="checkbox"
+                checked={selectedProducts.includes(product.id)}
+                onChange={(e) => onSelectProduct(product.id, e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800"
+              />
+            </TableCell>
+            <TableCell className="px-6 py-4 border-r border-gray-200 dark:border-white/[0.05]">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {index + 1}
+              </span>
+            </TableCell>
             <TableCell className="px-6 py-4 border-r border-gray-200 dark:border-white/[0.05]">
               {product.firstImage ? (
                 <img
@@ -155,12 +325,10 @@ export default function ProductTable({
                 className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                   product.status === "active"
                     ? "bg-success-100 text-success-700 dark:bg-success-500/10 dark:text-success-400"
-                    : product.status === "draft"
-                    ? "bg-warning-100 text-warning-700 dark:bg-warning-500/10 dark:text-warning-400"
                     : "bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400"
                 }`}
               >
-                {product.status === 'active' ? 'Активен' : product.status === 'draft' ? 'Чернова' : product.status === 'inactive' ? 'Неактивен' : 'Архивиран'}
+                {product.status === 'active' ? 'Активен' : product.status === 'inactive' ? 'Неактивен' : 'Архивиран'}
               </span>
             </TableCell>
             <TableCell className="px-6 py-4">
@@ -206,7 +374,8 @@ export default function ProductTable({
               </div>
             </TableCell>
           </TableRow>
-        ))}
+          ))
+        )}
       </TableBody>
     </Table>
   );
