@@ -63,7 +63,23 @@ ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER << 'EOF'
 EOF
 
 echo ""
-echo "Step 5: Cleaning up local image files..."
+echo "Step 5: Running database migrations..."
+echo "---------------------------------------"
+
+ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER << 'EOF'
+  cd /opt/dshome
+
+  echo "Waiting for backend to be ready..."
+  sleep 5
+
+  echo "Running migrations..."
+  docker compose -f docker-compose.prod.yml exec -T backend pnpm db:migrate
+
+  echo "Migrations completed!"
+EOF
+
+echo ""
+echo "Step 6: Cleaning up local image files..."
 echo "----------------------------------------"
 rm -f dshome-backend.tar dshome-admin.tar
 
