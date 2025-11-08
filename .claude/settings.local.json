@@ -28,7 +28,8 @@
       "Bash(cmd //c taskkill //PID 28980 //F)",
       "Bash(git restore:*)",
       "Bash(git push:*)",
-      "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && cd packages/admin && pnpm install && pnpm build\")"
+      "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && cd packages/admin && pnpm install && pnpm build\")",
+      "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && pnpm --filter @dshome/shared build && pnpm --filter @dshome/admin build && pm2 restart dshome-admin && pm2 status\")"
     ],
     "deny": [],
     "ask": []

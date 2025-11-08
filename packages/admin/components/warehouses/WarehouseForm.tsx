@@ -16,6 +16,7 @@ const warehouseSchema = z.object({
   latitude: z.string().optional(),
   longitude: z.string().optional(),
   isPhysicalStore: z.boolean().optional(),
+  status: z.enum(["active", "inactive"]),
 });
 
 type WarehouseFormData = z.infer<typeof warehouseSchema>;
@@ -45,6 +46,7 @@ export default function WarehouseForm({ warehouse, mode }: WarehouseFormProps) {
       latitude: warehouse?.latitude || "",
       longitude: warehouse?.longitude || "",
       isPhysicalStore: warehouse?.isPhysicalStore || false,
+      status: warehouse?.status || "active",
     },
   });
 
@@ -277,6 +279,24 @@ export default function WarehouseForm({ warehouse, mode }: WarehouseFormProps) {
                   className="h-10 w-10 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900"
                 />
               </div>
+            </div>
+
+            {/* Status */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
+              <label
+                htmlFor="status"
+                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Статус
+              </label>
+              <select
+                id="status"
+                {...register("status")}
+                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              >
+                <option value="active">Активен</option>
+                <option value="inactive">Неактивен</option>
+              </select>
             </div>
           </div>
         </div>
