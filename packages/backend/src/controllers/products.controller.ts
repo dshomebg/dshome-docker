@@ -243,7 +243,10 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
 
           return {
             ...comb,
-            attributeValues: attrs.map(a => a.attributeValueId)
+            priceImpact: comb.priceImpact ? String(comb.priceImpact) : '0',
+            weightImpact: comb.weightImpact ? String(comb.weightImpact) : '0',
+            quantity: String(comb.quantity || 0),
+            attributeValueIds: attrs.map(a => a.attributeValueId)
           };
         })
       );
@@ -289,7 +292,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       sku, name, slug, shortDescription, description, productType,
       brandId, supplierId, weight, width, height, depth,
       metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage, canonicalUrl, robotsIndex, robotsFollow,
-      status, categories: cats, price, compareAtPrice
+      status, categories: cats, price, compareAtPrice, images, features, quantity, warehouseId, combinations
     } = req.body;
 
     // Check if SKU already exists
@@ -333,7 +336,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       canonicalUrl,
       robotsIndex: robotsIndex !== undefined ? robotsIndex : true,
       robotsFollow: robotsFollow !== undefined ? robotsFollow : true,
-      status: status || 'draft',
+      status: status || 'inactive',
       updatedAt: new Date()
     }).returning();
 
@@ -348,6 +351,29 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       );
     }
 
+    // Create images
+    if (images && images.length > 0) {
+      await db.insert(productImages).values(
+        images.map((img: any) => ({
+          productId: newProduct.id,
+          url: img.url,
+          thumbnailUrl: img.url, // Using same URL for thumbnail for now
+          position: img.position,
+          altText: `${name} ${img.position + 1}`
+        }))
+      );
+    }
+
+    // Create product features
+    if (features && features.length > 0) {
+      await db.insert(productFeatures).values(
+        features.map((feat: any) => ({
+          productId: newProduct.id,
+          featureValueId: feat.featureValueId
+        }))
+      );
+    }
+
     // Create price
     if (price !== undefined) {
       await db.insert(productPrices).values({
@@ -356,6 +382,45 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
         compareAtPrice: compareAtPrice ? String(compareAtPrice) : null,
         currency: 'EUR'
       });
+    }
+
+    // Create inventory
+    if (quantity !== undefined && warehouseId) {
+      await db.insert(productInventory).values({
+        productId: newProduct.id,
+        warehouseId: warehouseId,
+        quantity: quantity,
+        reservedQuantity: 0
+      });
+    }
+
+    // Create combinations if product type is 'combination'
+    if (productType === 'combination' && combinations && combinations.length > 0) {
+      for (let i = 0; i < combinations.length; i++) {
+        const combo = combinations[i];
+
+        // Insert the combination
+        const [newCombination] = await db.insert(productCombinations).values({
+          productId: newProduct.id,
+          sku: combo.sku,
+          name: combo.name,
+          priceImpact: combo.priceImpact ? String(combo.priceImpact) : '0',
+          weightImpact: combo.weightImpact ? String(combo.weightImpact) : '0',
+          quantity: combo.quantity ? parseInt(combo.quantity) : 0,
+          position: i,
+          isDefault: combo.isDefault || false
+        }).returning();
+
+        // Insert attribute value associations
+        if (combo.attributeValueIds && combo.attributeValueIds.length > 0) {
+          await db.insert(productCombinationAttributes).values(
+            combo.attributeValueIds.map((valueId: string) => ({
+              combinationId: newCombination.id,
+              attributeValueId: valueId
+            }))
+          );
+        }
+      }
     }
 
     logger.info(`Created product: ${newProduct.name} (${newProduct.id})`);
@@ -394,18 +459,167 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       }
     }
 
+    // Extract only valid product fields
+    const {
+      sku, name, slug, shortDescription, description, productType,
+      brandId, supplierId, weight, width, height, depth,
+      metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage, canonicalUrl, robotsIndex, robotsFollow,
+      status, categories: cats, price, compareAtPrice, images, features, quantity, warehouseId, combinations
+    } = updateData;
+
     // Update product
     const [updatedProduct] = await db.update(products)
       .set({
-        ...updateData,
-        weight: updateData.weight ? String(updateData.weight) : undefined,
-        width: updateData.width ? String(updateData.width) : undefined,
-        height: updateData.height ? String(updateData.height) : undefined,
-        depth: updateData.depth ? String(updateData.depth) : undefined,
+        ...(sku !== undefined && { sku }),
+        ...(name !== undefined && { name }),
+        ...(slug !== undefined && { slug }),
+        ...(shortDescription !== undefined && { shortDescription }),
+        ...(description !== undefined && { description }),
+        ...(productType !== undefined && { productType }),
+        ...(brandId !== undefined && { brandId: brandId || null }),
+        ...(supplierId !== undefined && { supplierId: supplierId || null }),
+        ...(weight !== undefined && { weight: weight ? String(weight) : null }),
+        ...(width !== undefined && { width: width ? String(width) : null }),
+        ...(height !== undefined && { height: height ? String(height) : null }),
+        ...(depth !== undefined && { depth: depth ? String(depth) : null }),
+        ...(metaTitle !== undefined && { metaTitle }),
+        ...(metaDescription !== undefined && { metaDescription }),
+        ...(metaKeywords !== undefined && { metaKeywords }),
+        ...(ogTitle !== undefined && { ogTitle }),
+        ...(ogDescription !== undefined && { ogDescription }),
+        ...(ogImage !== undefined && { ogImage }),
+        ...(canonicalUrl !== undefined && { canonicalUrl }),
+        ...(robotsIndex !== undefined && { robotsIndex }),
+        ...(robotsFollow !== undefined && { robotsFollow }),
+        ...(status !== undefined && { status }),
         updatedAt: new Date()
       })
       .where(eq(products.id, id))
       .returning();
+
+    // Update categories if provided
+    if (cats !== undefined) {
+      // Validate - exactly one must be primary
+      const primaryCats = cats.filter((c: any) => c.isPrimary);
+      if (primaryCats.length !== 1) {
+        throw new AppError(400, 'Exactly one category must be marked as primary', 'INVALID_PRIMARY_CATEGORY');
+      }
+
+      // Delete existing categories and create new ones
+      await db.delete(productCategories).where(eq(productCategories.productId, id));
+      if (cats.length > 0) {
+        await db.insert(productCategories).values(
+          cats.map((cat: any) => ({
+            productId: id,
+            categoryId: cat.categoryId,
+            isPrimary: cat.isPrimary
+          }))
+        );
+      }
+    }
+
+    // Update images if provided
+    if (images !== undefined) {
+      // Delete existing images and create new ones
+      await db.delete(productImages).where(eq(productImages.productId, id));
+      if (images.length > 0) {
+        await db.insert(productImages).values(
+          images.map((img: any) => ({
+            productId: id,
+            url: img.url,
+            thumbnailUrl: img.url, // Using same URL for thumbnail for now
+            position: img.position,
+            altText: `${updatedProduct.name} ${img.position + 1}`
+          }))
+        );
+      }
+    }
+
+    // Update features if provided
+    if (features !== undefined) {
+      // Delete existing features and create new ones
+      await db.delete(productFeatures).where(eq(productFeatures.productId, id));
+      if (features.length > 0) {
+        await db.insert(productFeatures).values(
+          features.map((feat: any) => ({
+            productId: id,
+            featureValueId: feat.featureValueId
+          }))
+        );
+      }
+    }
+
+    // Update price if provided
+    if (price !== undefined) {
+      // Insert new price record (keep history)
+      await db.insert(productPrices).values({
+        productId: id,
+        price: String(price),
+        compareAtPrice: compareAtPrice ? String(compareAtPrice) : null,
+        currency: 'EUR'
+      });
+    }
+
+    // Update inventory if provided
+    if (quantity !== undefined && warehouseId) {
+      // Delete existing inventory for this product and warehouse
+      await db.delete(productInventory).where(
+        and(
+          eq(productInventory.productId, id),
+          eq(productInventory.warehouseId, warehouseId)
+        )
+      );
+      // Create new inventory record
+      await db.insert(productInventory).values({
+        productId: id,
+        warehouseId: warehouseId,
+        quantity: quantity,
+        reservedQuantity: 0
+      });
+    }
+
+    // Update combinations if provided and product type is 'combination'
+    if (combinations !== undefined && (productType === 'combination' || existingProduct.productType === 'combination')) {
+      // Delete existing combinations and their attributes
+      const existingCombinations = await db
+        .select()
+        .from(productCombinations)
+        .where(eq(productCombinations.productId, id));
+
+      for (const existingCombo of existingCombinations) {
+        await db.delete(productCombinationAttributes).where(eq(productCombinationAttributes.combinationId, existingCombo.id));
+      }
+      await db.delete(productCombinations).where(eq(productCombinations.productId, id));
+
+      // Create new combinations if provided
+      if (combinations.length > 0) {
+        for (let i = 0; i < combinations.length; i++) {
+          const combo = combinations[i];
+
+          // Insert the combination
+          const [newCombination] = await db.insert(productCombinations).values({
+            productId: id,
+            sku: combo.sku,
+            name: combo.name,
+            priceImpact: combo.priceImpact ? String(combo.priceImpact) : '0',
+            weightImpact: combo.weightImpact ? String(combo.weightImpact) : '0',
+            quantity: combo.quantity ? parseInt(combo.quantity) : 0,
+            position: i,
+            isDefault: combo.isDefault || false
+          }).returning();
+
+          // Insert attribute value associations
+          if (combo.attributeValueIds && combo.attributeValueIds.length > 0) {
+            await db.insert(productCombinationAttributes).values(
+              combo.attributeValueIds.map((valueId: string) => ({
+                combinationId: newCombination.id,
+                attributeValueId: valueId
+              }))
+            );
+          }
+        }
+      }
+    }
 
     logger.info(`Updated product: ${updatedProduct.name} (${id})`);
 

@@ -30,7 +30,7 @@ export interface Product {
   robotsIndex: boolean;
   robotsFollow: boolean;
 
-  status: 'active' | 'inactive' | 'draft' | 'archived';
+  status: 'active' | 'inactive' | 'archived';
   createdAt: string;
   updatedAt: string;
 
@@ -95,6 +95,27 @@ export interface ProductFormData {
   supplierId?: string;
   categories: { categoryId: string; isPrimary: boolean }[];
 
+  // Images
+  images?: { url: string; position: number; isPrimary: boolean }[];
+
+  // Features
+  features?: { featureValueId: string }[];
+
+  // Combinations (for combination products)
+  combinations?: {
+    sku: string;
+    name?: string;
+    priceImpact: string;
+    weightImpact: string;
+    quantity: string;
+    isDefault: boolean;
+    attributeValueIds: string[];
+  }[];
+
+  // Inventory (simple quantity for basic tab)
+  quantity?: number;
+  warehouseId?: string;
+
   // Physical attributes
   weight?: number;
   width?: number;
@@ -116,7 +137,7 @@ export interface ProductFormData {
   robotsIndex?: boolean;
   robotsFollow?: boolean;
 
-  status: 'active' | 'inactive' | 'draft' | 'archived';
+  status: 'active' | 'inactive' | 'archived';
 }
 
 export const productsService = {

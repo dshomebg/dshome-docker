@@ -6,7 +6,7 @@ import { attributeValues } from './attributes';
 import { featureValues } from './features';
 import { warehouses } from './warehouses';
 
-export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'draft', 'archived']);
+export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived']);
 export const productTypeEnum = pgEnum('product_type', ['simple', 'combination']);
 
 export const products = pgTable('products', {
@@ -39,7 +39,7 @@ export const products = pgTable('products', {
   robotsIndex: boolean('robots_index').notNull().default(true),
   robotsFollow: boolean('robots_follow').notNull().default(true),
 
-  status: productStatusEnum('status').notNull().default('draft'),
+  status: productStatusEnum('status').notNull().default('inactive'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
@@ -52,6 +52,10 @@ export const productCombinations = pgTable('product_combinations', {
   name: varchar('name', { length: 255 }),
   price: decimal('price', { precision: 10, scale: 2 }),
   compareAtPrice: decimal('compare_at_price', { precision: 10, scale: 2 }),
+  priceImpact: decimal('price_impact', { precision: 10, scale: 2 }).default('0'), // Additional price to base price
+  weight: decimal('weight', { precision: 10, scale: 3 }), // Total weight in kg
+  weightImpact: decimal('weight_impact', { precision: 10, scale: 3 }).default('0'), // Additional weight to base weight
+  quantity: integer('quantity').notNull().default(0), // Quantity for this combination
   position: integer('position').notNull().default(0),
   isDefault: boolean('is_default').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
