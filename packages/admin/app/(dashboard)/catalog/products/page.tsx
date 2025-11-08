@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { productsService, Product } from "@/lib/services/products.service";
 import ProductFilters from "./ProductFilters";
@@ -14,7 +14,17 @@ export default function ProductsPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "draft" | "archived">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "archived">("all");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+
+  // Inline table filters
+  const [nameFilter, setNameFilter] = useState("");
+  const [skuFilter, setSkuFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [priceFromFilter, setPriceFromFilter] = useState("");
+  const [priceToFilter, setPriceToFilter] = useState("");
+  const [quantityFromFilter, setQuantityFromFilter] = useState("");
+  const [quantityToFilter, setQuantityToFilter] = useState("");
 
   useEffect(() => {
     fetchProducts();
@@ -66,7 +76,7 @@ export default function ProductsPage() {
     setCurrentPage(1);
   };
 
-  const handleStatusFilter = (status: "all" | "active" | "inactive" | "draft" | "archived") => {
+  const handleStatusFilter = (status: "all" | "active" | "inactive" | "archived") => {
     setStatusFilter(status);
     setCurrentPage(1);
   };
@@ -74,6 +84,126 @@ export default function ProductsPage() {
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
     setCurrentPage(1);
+  };
+
+  // Client-side filtering
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      // Name filter
+      if (nameFilter && !product.name.toLowerCase().includes(nameFilter.toLowerCase())) {
+        return false;
+      }
+
+      // SKU filter
+      if (skuFilter && !product.sku.toLowerCase().includes(skuFilter.toLowerCase())) {
+        return false;
+      }
+
+      // Category filter
+      if (categoryFilter && (!product.primaryCategory || !product.primaryCategory.name.toLowerCase().includes(categoryFilter.toLowerCase()))) {
+        return false;
+      }
+
+      // Price filters
+      if (priceFromFilter && product.currentPrice && product.currentPrice.price < parseFloat(priceFromFilter)) {
+        return false;
+      }
+      if (priceToFilter && product.currentPrice && product.currentPrice.price > parseFloat(priceToFilter)) {
+        return false;
+      }
+
+      // Quantity filters
+      if (quantityFromFilter && product.totalInventory < parseInt(quantityFromFilter)) {
+        return false;
+      }
+      if (quantityToFilter && product.totalInventory > parseInt(quantityToFilter)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [products, nameFilter, skuFilter, categoryFilter, priceFromFilter, priceToFilter, quantityFromFilter, quantityToFilter]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(filteredProducts.map((p) => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (productId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, productId]);
+    } else {
+      setSelectedProducts(selectedProducts.filter((id) => id !== productId));
+    }
+  };
+
+  const handleBulkActivate = async () => {
+    if (selectedProducts.length === 0) return;
+
+    try {
+      await Promise.all(
+        selectedProducts.map((id) =>
+          productsService.updateProduct(id, { status: "active" })
+        )
+      );
+      setSelectedProducts([]);
+      fetchProducts();
+    } catch (error) {
+      console.error("Error activating products:", error);
+      alert("Грешка при активиране на продуктите");
+    }
+  };
+
+  const handleBulkDeactivate = async () => {
+    if (selectedProducts.length === 0) return;
+
+    try {
+      await Promise.all(
+        selectedProducts.map((id) =>
+          productsService.updateProduct(id, { status: "inactive" })
+        )
+      );
+      setSelectedProducts([]);
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deactivating products:", error);
+      alert("Грешка при деактивиране на продуктите");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.length === 0) return;
+
+    if (!confirm(`Сигурни ли сте, че искате да изтриете ${selectedProducts.length} продукта?`)) {
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedProducts.map((id) => productsService.deleteProduct(id))
+      );
+      setSelectedProducts([]);
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting products:", error);
+      alert("Грешка при изтриване на продуктите");
+    }
+  };
+
+  const handleBulkDuplicate = async () => {
+    if (selectedProducts.length === 0) return;
+
+    try {
+      // TODO: Implement duplicate functionality in backend
+      alert("Функцията за дублиране ще бъде имплементирана скоро");
+      setSelectedProducts([]);
+    } catch (error) {
+      console.error("Error duplicating products:", error);
+      alert("Грешка при дублиране на продуктите");
+    }
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -124,17 +254,83 @@ export default function ProductsPage() {
           onSearchChange={handleSearch}
         />
 
+        {/* Bulk Actions Bar */}
+        {selectedProducts.length > 0 && (
+          <div className="flex items-center justify-between border-b border-gray-200 bg-brand-50 px-6 py-3 dark:border-white/[0.05] dark:bg-brand-500/10">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Избрани {selectedProducts.length} продукта
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkActivate}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Активиране
+                </button>
+                <button
+                  onClick={handleBulkDeactivate}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Деактивиране
+                </button>
+                <button
+                  onClick={handleBulkDuplicate}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Дублиране
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="rounded-lg border border-error-300 bg-white px-3 py-1.5 text-sm font-medium text-error-700 hover:bg-error-50 dark:border-error-700 dark:bg-gray-800 dark:text-error-400 dark:hover:bg-error-500/10"
+                >
+                  Изтриване
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedProducts([])}
+              className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Отказ
+            </button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="max-w-full overflow-x-auto">
           <ProductTable
-            products={products}
+            products={filteredProducts}
             loading={loading}
             onDelete={handleDelete}
+            selectedProducts={selectedProducts}
+            onSelectAll={handleSelectAll}
+            onSelectProduct={handleSelectProduct}
+            filters={{
+              name: nameFilter,
+              sku: skuFilter,
+              category: categoryFilter,
+              priceFrom: priceFromFilter,
+              priceTo: priceToFilter,
+              quantityFrom: quantityFromFilter,
+              quantityTo: quantityToFilter,
+              status: statusFilter,
+            }}
+            onFiltersChange={{
+              onNameChange: setNameFilter,
+              onSkuChange: setSkuFilter,
+              onCategoryChange: setCategoryFilter,
+              onPriceFromChange: setPriceFromFilter,
+              onPriceToChange: setPriceToFilter,
+              onQuantityFromChange: setQuantityFromFilter,
+              onQuantityToChange: setQuantityToFilter,
+              onStatusChange: setStatusFilter,
+            }}
           />
         </div>
 
         {/* Pagination */}
-        {!loading && products.length > 0 && (
+        {!loading && filteredProducts.length > 0 && (
           <div className="border-t border-gray-200 px-6 py-4 dark:border-white/[0.05]">
             <div className="flex flex-col items-center justify-between gap-4 xl:flex-row">
               {/* Results Info */}
