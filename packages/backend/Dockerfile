@@ -50,11 +50,15 @@ RUN pnpm install --frozen-lockfile --prod
 # Create uploads directory
 RUN mkdir -p /app/packages/backend/uploads
 
+# Copy startup script
+COPY packages/backend/docker-start.sh /app/packages/backend/
+RUN chmod +x /app/packages/backend/docker-start.sh
+
 # Expose port
 EXPOSE 3000
 
 # Set environment
 ENV NODE_ENV=production
 
-# Start backend
-CMD ["pnpm", "--filter", "@dshome/backend", "start"]
+# Start backend using startup script
+CMD ["/app/packages/backend/docker-start.sh"]

@@ -69,11 +69,9 @@ echo "---------------------------------------"
 ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER << 'EOF'
   cd /opt/dshome
 
-  echo "Waiting for backend to be ready..."
-  sleep 5
-
-  echo "Running migrations..."
-  docker compose -f docker-compose.prod.yml exec -T backend pnpm db:migrate
+  echo "Running migrations directly on host (not in Docker)..."
+  # Migrations run on host where PostgreSQL is accessible via localhost
+  pnpm --filter @dshome/backend db:migrate
 
   echo "Migrations completed!"
 EOF

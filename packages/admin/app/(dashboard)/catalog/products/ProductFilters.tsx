@@ -1,8 +1,8 @@
 interface ProductFiltersProps {
   itemsPerPage: number;
   onItemsPerPageChange: (value: number) => void;
-  statusFilter: "all" | "active" | "inactive" | "draft" | "archived";
-  onStatusFilterChange: (status: "all" | "active" | "inactive" | "draft" | "archived") => void;
+  statusFilter: "all" | "active" | "inactive" | "archived";
+  onStatusFilterChange: (status: "all" | "active" | "inactive" | "archived") => void;
   searchTerm: string;
   onSearchChange: (value: string) => void;
 }
@@ -49,7 +49,6 @@ export default function ProductFilters({
           >
             <option value="all">Всички</option>
             <option value="active">Активни</option>
-            <option value="draft">Чернови</option>
             <option value="inactive">Неактивни</option>
             <option value="archived">Архивирани</option>
           </select>

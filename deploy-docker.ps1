@@ -121,9 +121,36 @@ catch {
     exit 1
 }
 
-# Step 5: Cleanup local files
+# Step 5: Run database migrations
 Write-Host ""
-Write-Host "Step 5: Cleaning up local image files..." -ForegroundColor Yellow
+Write-Host "Step 5: Running database migrations..." -ForegroundColor Yellow
+Write-Host "---------------------------------------" -ForegroundColor Yellow
+Write-Host ""
+
+$migrationScript = @'
+cd /opt/dshome
+
+echo "Running migrations directly on host (not in Docker)..."
+pnpm --filter @dshome/backend db:migrate
+
+echo "Migrations completed!"
+'@
+
+try {
+    ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER $migrationScript
+    if ($LASTEXITCODE -ne 0) {
+        throw "Database migrations failed"
+    }
+}
+catch {
+    Write-Host "ERROR: Failed to run database migrations" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
+    exit 1
+}
+
+# Step 6: Cleanup local files
+Write-Host ""
+Write-Host "Step 6: Cleaning up local image files..." -ForegroundColor Yellow
 Write-Host "----------------------------------------" -ForegroundColor Yellow
 Write-Host ""
 

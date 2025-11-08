@@ -36,7 +36,13 @@
       "Bash(docker compose:*)",
       "Bash(docker save:*)",
       "Bash(scp:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(cmd //c taskkill //PID 22792 //F)",
+      "Bash(cmd //c taskkill //PID 19772 //F)",
+      "Bash(cmd //c taskkill //PID 15156 //F)",
+      "Bash(cmd //c taskkill //PID 32616 //F)",
+      "Bash(cmd //c taskkill //PID 5584 //F)",
+      "Bash(cmd /c taskkill /PID 12948 /F)"
     ],
     "deny": [],
     "ask": []
