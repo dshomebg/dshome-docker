@@ -11,6 +11,13 @@ export interface Category {
   status: 'active' | 'inactive';
   metaTitle: string | null;
   metaDescription: string | null;
+  metaKeywords: string | null;
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImage: string | null;
+  canonicalUrl: string | null;
+  robotsIndex: boolean;
+  robotsFollow: boolean;
   createdAt: string;
   updatedAt: string;
   children?: Category[];
@@ -67,6 +74,13 @@ export const categoriesService = {
     status?: 'active' | 'inactive';
     metaTitle?: string;
     metaDescription?: string;
+    metaKeywords?: string;
+    ogTitle?: string;
+    ogDescription?: string;
+    ogImage?: string;
+    canonicalUrl?: string;
+    robotsIndex?: boolean;
+    robotsFollow?: boolean;
   }): Promise<CategoryResponse> => {
     const response = await apiClient.post<CategoryResponse>('/categories', data);
     return response.data;
@@ -83,6 +97,13 @@ export const categoriesService = {
       status?: 'active' | 'inactive';
       metaTitle?: string;
       metaDescription?: string;
+      metaKeywords?: string;
+      ogTitle?: string;
+      ogDescription?: string;
+      ogImage?: string;
+      canonicalUrl?: string;
+      robotsIndex?: boolean;
+      robotsFollow?: boolean;
     }
   ): Promise<CategoryResponse> => {
     const response = await apiClient.put<CategoryResponse>(`/categories/${id}`, data);
