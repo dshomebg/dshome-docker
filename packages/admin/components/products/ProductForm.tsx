@@ -417,7 +417,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 ) : (
                   <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Няма добавени характеристики. Натиснете бутона "Добави характеристика" за да добавите.
+                      Няма добавени характеристики. Натиснете бутона &quot;Добави характеристика&quot; за да добавите.
                     </p>
                   </div>
                 )}
