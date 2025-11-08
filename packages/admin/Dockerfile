@@ -44,8 +44,8 @@ COPY package.json pnpm-lock.yaml ./
 COPY --from=base /app/packages/shared ./packages/shared
 COPY --from=base /app/packages/admin ./packages/admin
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install ALL dependencies (including devDependencies for next.config.ts)
+RUN pnpm install --frozen-lockfile
 
 # Expose port
 EXPOSE 3001

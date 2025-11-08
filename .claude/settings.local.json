@@ -32,7 +32,11 @@
       "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && pnpm --filter @dshome/shared build && pnpm --filter @dshome/admin build && pm2 restart dshome-admin && pm2 status\")",
       "Bash(chmod:*)",
       "Bash(git mv:*)",
-      "Bash(pnpm --filter @dshome/backend build:*)"
+      "Bash(pnpm --filter @dshome/backend build:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker save:*)",
+      "Bash(scp:*)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []

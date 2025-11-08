@@ -38,14 +38,14 @@ Write-Host ""
 try {
     # Save backend image
     Write-Host "Saving backend image..." -ForegroundColor Gray
-    docker save dshome-backend-prod:latest | gzip > dshome-backend.tar.gz
+    docker save dshome-backend-prod:latest -o dshome-backend.tar
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to save backend image"
     }
 
     # Save admin image
     Write-Host "Saving admin image..." -ForegroundColor Gray
-    docker save dshome-admin-prod:latest | gzip > dshome-admin.tar.gz
+    docker save dshome-admin-prod:latest -o dshome-admin.tar
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to save admin image"
     }
@@ -66,10 +66,10 @@ Write-Host ""
 
 try {
     Write-Host "Uploading backend image..." -ForegroundColor Gray
-    scp -o StrictHostKeyChecking=no dshome-backend.tar.gz "${PRODUCTION_SERVER}:${PRODUCTION_PATH}/"
+    scp -o StrictHostKeyChecking=no dshome-backend.tar "${PRODUCTION_SERVER}:${PRODUCTION_PATH}/"
 
     Write-Host "Uploading admin image..." -ForegroundColor Gray
-    scp -o StrictHostKeyChecking=no dshome-admin.tar.gz "${PRODUCTION_SERVER}:${PRODUCTION_PATH}/"
+    scp -o StrictHostKeyChecking=no dshome-admin.tar "${PRODUCTION_SERVER}:${PRODUCTION_PATH}/"
 
     Write-Host "Uploading docker-compose..." -ForegroundColor Gray
     scp -o StrictHostKeyChecking=no docker-compose.prod.yml "${PRODUCTION_SERVER}:${PRODUCTION_PATH}/"
@@ -92,10 +92,10 @@ $deployScript = @'
 cd /opt/dshome
 
 echo "Loading Docker images..."
-docker load < dshome-backend.tar.gz
-docker load < dshome-admin.tar.gz
+docker load < dshome-backend.tar
+docker load < dshome-admin.tar
 
-echo "Stopping PM2 services (if running)..."
+echo "Stopping PM2 services if running..."
 pm2 stop all || true
 
 echo "Starting Docker containers..."
@@ -103,7 +103,7 @@ docker compose -f docker-compose.prod.yml down || true
 docker compose -f docker-compose.prod.yml up -d
 
 echo "Cleaning up image files..."
-rm -f dshome-backend.tar.gz dshome-admin.tar.gz
+rm -f dshome-backend.tar dshome-admin.tar
 
 echo "Docker container status:"
 docker compose -f docker-compose.prod.yml ps
@@ -128,8 +128,8 @@ Write-Host "----------------------------------------" -ForegroundColor Yellow
 Write-Host ""
 
 try {
-    Remove-Item -Path "dshome-backend.tar.gz" -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "dshome-admin.tar.gz" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "dshome-backend.tar" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "dshome-admin.tar" -Force -ErrorAction SilentlyContinue
     Write-Host "Cleanup completed" -ForegroundColor Green
 }
 catch {

@@ -25,16 +25,16 @@ echo "Step 2: Saving Docker images..."
 echo "--------------------------------"
 
 # Save images to tar files
-docker save dshome-backend-prod:latest | gzip > dshome-backend.tar.gz
-docker save dshome-admin-prod:latest | gzip > dshome-admin.tar.gz
+docker save dshome-backend-prod:latest -o dshome-backend.tar
+docker save dshome-admin-prod:latest -o dshome-admin.tar
 
 echo ""
 echo "Step 3: Uploading images to production server..."
 echo "------------------------------------------------"
 
 # Upload images
-scp -o StrictHostKeyChecking=no dshome-backend.tar.gz $PRODUCTION_SERVER:$PRODUCTION_PATH/
-scp -o StrictHostKeyChecking=no dshome-admin.tar.gz $PRODUCTION_SERVER:$PRODUCTION_PATH/
+scp -o StrictHostKeyChecking=no dshome-backend.tar $PRODUCTION_SERVER:$PRODUCTION_PATH/
+scp -o StrictHostKeyChecking=no dshome-admin.tar $PRODUCTION_SERVER:$PRODUCTION_PATH/
 scp -o StrictHostKeyChecking=no docker-compose.prod.yml $PRODUCTION_SERVER:$PRODUCTION_PATH/
 
 echo ""
@@ -45,10 +45,10 @@ ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER << 'EOF'
   cd /opt/dshome
 
   echo "Loading Docker images..."
-  docker load < dshome-backend.tar.gz
-  docker load < dshome-admin.tar.gz
+  docker load < dshome-backend.tar
+  docker load < dshome-admin.tar
 
-  echo "Stopping PM2 services (if running)..."
+  echo "Stopping PM2 services if running..."
   pm2 stop all || true
 
   echo "Starting Docker containers..."
@@ -56,7 +56,7 @@ ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER << 'EOF'
   docker compose -f docker-compose.prod.yml up -d
 
   echo "Cleaning up image files..."
-  rm -f dshome-backend.tar.gz dshome-admin.tar.gz
+  rm -f dshome-backend.tar dshome-admin.tar
 
   echo "Docker container status:"
   docker compose -f docker-compose.prod.yml ps
@@ -65,7 +65,7 @@ EOF
 echo ""
 echo "Step 5: Cleaning up local image files..."
 echo "----------------------------------------"
-rm -f dshome-backend.tar.gz dshome-admin.tar.gz
+rm -f dshome-backend.tar dshome-admin.tar
 
 echo ""
 echo "========================================="
