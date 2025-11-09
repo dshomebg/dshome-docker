@@ -25,7 +25,7 @@ interface ProductFormProps {
   mode: "create" | "edit";
 }
 
-type TabId = "basic" | "prices" | "combinations" | "measurement" | "seo";
+type TabId = "basic" | "prices" | "delivery" | "combinations" | "measurement" | "seo";
 
 interface Tab {
   id: TabId;
@@ -36,6 +36,7 @@ interface Tab {
 const tabs: Tab[] = [
   { id: "basic", label: "Основна информация" },
   { id: "prices", label: "Цени" },
+  { id: "delivery", label: "Доставка" },
   { id: "combinations", label: "Комбинации" },
   { id: "measurement", label: "Пакети/м²" },
   { id: "seo", label: "SEO" },
@@ -255,6 +256,10 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   const [inventoryData, setInventoryData] = useState<Array<{ warehouseId: string; quantity: number }>>(
     product?.inventory?.map((inv: any) => ({ warehouseId: inv.warehouseId, quantity: inv.quantity })) || []
   );
+
+  // Delivery
+  const [deliveryTimeId, setDeliveryTimeId] = useState(product?.deliveryTimeId || "");
+  const [deliveryTimeTemplates, setDeliveryTimeTemplates] = useState<any[]>([]);
 
   // SEO data
   const [seoData, setSeoData] = useState<SeoFormData>({
@@ -511,13 +516,14 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
 
   const fetchReferenceData = async () => {
     try {
-      const [brandsRes, suppliersRes, categoriesRes, featuresRes, warehousesRes, rulesRes] = await Promise.all([
+      const [brandsRes, suppliersRes, categoriesRes, featuresRes, warehousesRes, rulesRes, deliveryRes] = await Promise.all([
         brandsService.getBrands({ limit: 1000 }),
         suppliersService.getSuppliers({ limit: 1000 }),
         categoriesService.getCategoryTree(),
         featuresService.getFeatureGroups({ limit: 1000, status: 'active' }),
         warehousesService.getWarehouses({ limit: 1000, status: 'active' }),
         measurementRulesService.getMeasurementRules({ limit: 1000, status: 'active' }),
+        catalogSettingsService.getDeliveryTimeTemplates(),
       ]);
       setBrands(brandsRes.data);
       setSuppliers(suppliersRes.data);
@@ -525,6 +531,12 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       setFeatureGroups(featuresRes.data);
       setWarehouses(warehousesRes.data);
       setMeasurementRules(rulesRes.data);
+      setDeliveryTimeTemplates(deliveryRes.data);
+
+      // Set default delivery time to the first one if creating new product
+      if (!product && deliveryRes.data.length > 0) {
+        setDeliveryTimeId(deliveryRes.data[0].id);
+      }
     } catch (error) {
       console.error("Error fetching reference data:", error);
     }
@@ -614,6 +626,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
           calculatorEnabled,
         } : undefined,
         status,
+        deliveryTimeId: deliveryTimeId || undefined,
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
         canonicalUrl: seoData.canonicalUrl || undefined,
@@ -1260,6 +1273,194 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 </p>
               </div>
             )}
+          </div>
+        );
+
+      case "delivery":
+        return (
+          <div className="space-y-6">
+            {/* Package Dimensions and Weight */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                Размери и тегло на пратката
+              </h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* Weight */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Тегло <span className="text-error-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                      required
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      кг
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Тегло на пратката в килограми
+                  </p>
+                </div>
+
+                {/* Width */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Ширина
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      см
+                    </span>
+                  </div>
+                </div>
+
+                {/* Height */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Височина
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      см
+                    </span>
+                  </div>
+                </div>
+
+                {/* Depth */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Дължина
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={depth}
+                      onChange={(e) => setDepth(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      см
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Warehouse Inventory */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                Наличност по складове
+              </h3>
+              <div className="space-y-3">
+                {warehouses.map((warehouse: any) => {
+                  const inventoryItem = inventoryData.find(inv => inv.warehouseId === warehouse.id);
+                  const quantity = inventoryItem?.quantity || 0;
+
+                  return (
+                    <div key={warehouse.id} className="flex items-center gap-4 rounded-lg border border-gray-300 p-4 dark:border-gray-700">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{warehouse.name}</p>
+                        {warehouse.location && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{warehouse.location}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {quantity} бр.
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {warehouses.length === 0 && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Няма налични складове</p>
+                )}
+              </div>
+            </div>
+
+            {/* Delivery Time */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                Срок на доставка
+              </h3>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Изберете срок на доставка
+                </label>
+                <select
+                  value={deliveryTimeId}
+                  onChange={(e) => setDeliveryTimeId(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                >
+                  <option value="">-- Изберете срок --</option>
+                  {deliveryTimeTemplates.map((template: any) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Сроковете се управляват от Каталог → Настройки
+                </p>
+              </div>
+            </div>
+
+            {/* Couriers Placeholder */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                Куриери
+              </h3>
+              <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
+                <svg
+                  className="mx-auto mb-4 h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+                <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+                  Модулът "Куриери" предстои
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Тук ще можете да изберете кои куриери да предлагате за този продукт
+                </p>
+              </div>
+            </div>
           </div>
         );
 

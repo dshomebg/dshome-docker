@@ -289,10 +289,13 @@ export default function CatalogSettingsPage() {
                         type="text"
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleUpdateTemplate(template.id)}
-                        onBlur={() => {
-                          setEditingTemplate(null);
-                          setEditingName("");
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleUpdateTemplate(template.id);
+                          } else if (e.key === "Escape") {
+                            setEditingTemplate(null);
+                            setEditingName("");
+                          }
                         }}
                         className="w-full rounded border-[1.5px] border-stroke bg-transparent px-3 py-2 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                         autoFocus
@@ -305,23 +308,47 @@ export default function CatalogSettingsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingTemplate(template.id);
-                        setEditingName(template.name);
-                      }}
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Редактирай
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteTemplate(template.id, template.name)}
-                      className="text-sm text-meta-1 hover:underline"
-                    >
-                      Изтрий
-                    </button>
+                    {editingTemplate === template.id ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateTemplate(template.id)}
+                          className="text-sm text-success hover:underline"
+                        >
+                          Запази
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingTemplate(null);
+                            setEditingName("");
+                          }}
+                          className="text-sm text-meta-1 hover:underline"
+                        >
+                          Откажи
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingTemplate(template.id);
+                            setEditingName(template.name);
+                          }}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          Редактирай
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTemplate(template.id, template.name)}
+                          className="text-sm text-meta-1 hover:underline"
+                        >
+                          Изтрий
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

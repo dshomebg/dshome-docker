@@ -19,6 +19,9 @@ export interface Product {
   height?: number;
   depth?: number;
 
+  // Delivery
+  deliveryTimeId?: string;
+
   // SEO
   metaTitle?: string;
   metaDescription?: string;
@@ -116,6 +119,9 @@ export interface ProductFormData {
   width?: number;
   height?: number;
   depth?: number;
+
+  // Delivery
+  deliveryTimeId?: string;
 
   // Pricing
   price: number;

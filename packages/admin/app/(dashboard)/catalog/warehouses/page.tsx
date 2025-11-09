@@ -108,8 +108,24 @@ export default function WarehousesPage() {
                     key={warehouse.id}
                     className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
                   >
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                      {index + 1}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <code className="rounded bg-gray-100 px-2 py-1 text-xs font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          {warehouse.id}
+                        </code>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(warehouse.id);
+                            alert('UUID копиран!');
+                          }}
+                          className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-brand-400"
+                          title="Копирай UUID"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">

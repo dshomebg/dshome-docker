@@ -15,6 +15,8 @@ import measurementRulesRoutes from './measurement-rules.routes';
 import seoSettingsRoutes from './seo-settings.routes';
 import generalSettingsRoutes from './general-settings.routes';
 import richSnippetsSettingsRoutes from './rich-snippets-settings.routes';
+import importTemplatesRoutes from './import-templates.routes';
+import productImportRoutes from './product-import.routes';
 
 const router: Router = Router();
 
@@ -34,5 +36,7 @@ router.use('/measurement-rules', measurementRulesRoutes);
 router.use('/seo-settings', seoSettingsRoutes);
 router.use('/general-settings', generalSettingsRoutes);
 router.use('/rich-snippets-settings', richSnippetsSettingsRoutes);
+router.use('/import-templates', importTemplatesRoutes);
+router.use('/product-import', productImportRoutes);
 
 export default router;

@@ -60,6 +60,7 @@ const menuItems: MenuItem[] = [
     children: [
       { title: "Пакети/м²", path: "/modules/measurement-packages" },
       { title: "SEO", path: "/modules/seo" },
+      { title: "Количества - Update", path: "/modules/quantity-update" },
     ],
   },
   {
