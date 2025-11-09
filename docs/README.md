@@ -14,6 +14,14 @@
 - Performance optimization
 - Deployment strategy
 
+### [ROADMAP.md](./ROADMAP.md)
+Пътна карта на разработката:
+- Progress summary
+- Catalog module (Products, Categories, Attributes, Features, Brands, Suppliers, Warehouses)
+- Sales module (Orders, Customers, Couriers, Statuses)
+- Modules (Quantity Update, SEO, Display Hooks)
+- Settings & Tools
+
 ### [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)
 Пълен план за разработка на проекта:
 - Текущо състояние
@@ -29,6 +37,17 @@
 - Конфигурация на services
 - Troubleshooting
 - Полезни команди
+
+### [MODULES-QUANTITY-UPDATE.md](./MODULES-QUANTITY-UPDATE.md)
+Пълна документация на модул "Количества - Update":
+- Архитектура (Frontend + Backend)
+- User flow (5-step process)
+- Data validation
+- Performance & Security
+- API endpoints
+- Database schema
+- Troubleshooting
+- Future improvements
 
 ## Бърз преглед
 
@@ -124,6 +143,11 @@ GET  /api/auth/me        → Current user (auth required)
 - ✅ shipping_addresses
 - ✅ product_images
 - ✅ product_prices
+- ✅ brands
+- ✅ suppliers
+- ✅ attribute_groups & attribute_values
+- ✅ feature_groups & feature_values
+- ✅ import_templates
 
 ## Следващи стъпки
 
@@ -143,6 +167,6 @@ GET  /api/auth/me        → Current user (auth required)
 
 ---
 
-**Версия:** 1.0.0
-**Дата:** 2025-11-07
-**Статус:** В разработка - Backend готов, Frontend предстои
+**Версия:** 1.0.1
+**Последна актуализация:** 2025-11-10
+**Статус:** В активна разработка - Backend + Admin готови, Frontend предстои

@@ -1454,7 +1454,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                   />
                 </svg>
                 <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                  Модулът "Куриери" предстои
+                  Модулът &ldquo;Куриери&rdquo; предстои
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Тук ще можете да изберете кои куриери да предлагате за този продукт

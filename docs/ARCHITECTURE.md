@@ -477,6 +477,14 @@ Production Server:
 - createdAt, updatedAt
 ```
 
+**import_templates** - Импорт темплейти (за модул "Количества - Update")
+```sql
+- id (uuid, primary key)
+- name (име на темплейта)
+- columnMapping (jsonb - мапинг на Excel колони към полета)
+- createdAt, updatedAt
+```
+
 ## Security
 
 ### Authentication & Authorization
@@ -645,5 +653,5 @@ Ubuntu Server (srv.dshome.dev):
 ---
 
 **Дата на създаване:** 2025-11-07
-**Последна актуализация:** 2025-11-07
-**Версия:** 1.0.0
+**Последна актуализация:** 2025-11-10 (Добавен модул "Количества - Update")
+**Версия:** 1.0.1

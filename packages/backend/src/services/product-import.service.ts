@@ -217,8 +217,7 @@ const updateProductPrice = async (
     await db.update(productPrices)
       .set({
         price: String(price),
-        supplierPrice: supplierPrice ? String(supplierPrice) : existingPrice.supplierPrice,
-        updatedAt: new Date()
+        supplierPrice: supplierPrice ? String(supplierPrice) : existingPrice.supplierPrice
       })
       .where(eq(productPrices.id, existingPrice.id));
   } else {
@@ -258,8 +257,7 @@ const updateProductInventory = async (
     // Update existing inventory
     await db.update(productInventory)
       .set({
-        quantity,
-        updatedAt: new Date()
+        quantity
       })
       .where(eq(productInventory.id, existingInventory.id));
   } else {

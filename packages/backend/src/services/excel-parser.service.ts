@@ -50,7 +50,7 @@ export const parseExcelFile = (buffer: Buffer): ExcelParseResult => {
       raw: false, // Keep values as strings for consistency
       defval: '', // Default value for empty cells
       blankrows: false // Skip blank rows
-    });
+    }) as Record<string, any>[];
 
     logger.info(`Parsed Excel file: ${columns.length} columns, ${jsonData.length} rows`);
 
