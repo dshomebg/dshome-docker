@@ -59,6 +59,7 @@ const menuItems: MenuItem[] = [
     icon: Puzzle,
     children: [
       { title: "Пакети/м²", path: "/modules/measurement-packages" },
+      { title: "SEO", path: "/modules/seo" },
     ],
   },
   {

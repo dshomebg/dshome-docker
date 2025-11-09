@@ -3,7 +3,7 @@ import { db } from '../db';
 import { measurementRules, productMeasurementConfig } from '../db/schema/products';
 import { eq, desc, ilike, or, and } from 'drizzle-orm';
 import { AppError } from '../middleware/error.middleware';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 // Get all measurement rules with optional filters
 export const getMeasurementRules = async (req: Request, res: Response, next: NextFunction) => {

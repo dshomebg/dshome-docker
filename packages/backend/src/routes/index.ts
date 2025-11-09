@@ -12,6 +12,9 @@ import facetedNavigationRoutes from './faceted-navigation.routes';
 import uploadRoutes from './upload.routes';
 import productsRoutes from './products.routes';
 import measurementRulesRoutes from './measurement-rules.routes';
+import seoSettingsRoutes from './seo-settings.routes';
+import generalSettingsRoutes from './general-settings.routes';
+import richSnippetsSettingsRoutes from './rich-snippets-settings.routes';
 
 const router: Router = Router();
 
@@ -28,5 +31,8 @@ router.use('/faceted-navigation', facetedNavigationRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/products', productsRoutes);
 router.use('/measurement-rules', measurementRulesRoutes);
+router.use('/seo-settings', seoSettingsRoutes);
+router.use('/general-settings', generalSettingsRoutes);
+router.use('/rich-snippets-settings', richSnippetsSettingsRoutes);
 
 export default router;

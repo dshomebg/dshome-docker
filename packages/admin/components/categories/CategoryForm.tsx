@@ -31,6 +31,7 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
     metaTitle: category?.metaTitle || "",
     metaDescription: category?.metaDescription || "",
     canonicalUrl: category?.canonicalUrl || "",
+    skipMetaGeneration: category?.skipMetaGeneration || false,
   });
 
   useEffect(() => {
@@ -109,6 +110,7 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
         canonicalUrl: seoData.canonicalUrl || undefined,
+        skipMetaGeneration: seoData.skipMetaGeneration,
       };
 
       if (mode === "create") {
@@ -329,6 +331,26 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Задайте каноничен URL, ако тази страница е дубликат
               </p>
+            </div>
+
+            {/* Skip Meta Generation Checkbox */}
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={seoData.skipMetaGeneration || false}
+                  onChange={(e) => setSeoData({ ...seoData, skipMetaGeneration: e.target.checked })}
+                  className="h-5 w-5 rounded border-gray-300"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Не презаписвай мета при автоматично генериране
+                  </span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Ако е активно, мета таговете няма да бъдат презаписани при масово генериране
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
         </div>

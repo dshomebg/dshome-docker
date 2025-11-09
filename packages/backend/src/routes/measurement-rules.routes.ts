@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from 'express';
 import {
   getMeasurementRules,
   getMeasurementRule,
@@ -8,7 +8,7 @@ import {
   calculateMeasurement
 } from '../controllers/measurement-rules.controller';
 
-const router = express.Router();
+const router: Router = Router();
 
 // Calculation endpoint
 router.post('/calculate', calculateMeasurement);

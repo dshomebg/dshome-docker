@@ -41,6 +41,7 @@ export const products = pgTable('products', {
   canonicalUrl: varchar('canonical_url', { length: 500 }),
   robotsIndex: boolean('robots_index').notNull().default(true),
   robotsFollow: boolean('robots_follow').notNull().default(true),
+  skipMetaGeneration: boolean('skip_meta_generation').notNull().default(false),
 
   status: productStatusEnum('status').notNull().default('inactive'),
   createdAt: timestamp('created_at').notNull().defaultNow(),

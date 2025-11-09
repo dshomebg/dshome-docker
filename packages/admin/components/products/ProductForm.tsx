@@ -11,6 +11,8 @@ import { featuresService } from "@/lib/services/features.service";
 import { warehousesService } from "@/lib/services/warehouses.service";
 import { catalogSettingsService } from "@/lib/services/catalog-settings.service";
 import { measurementRulesService, MeasurementRule } from "@/lib/services/measurement-rules.service";
+import { generalSettingsService } from "@/lib/services/general-settings.service";
+import { seoSettingsService } from "@/lib/services/seo-settings.service";
 import TiptapEditor from "../editor/TiptapEditor";
 import ProductImagesUpload from "./ProductImagesUpload";
 import AddCharacteristicModal from "./AddCharacteristicModal";
@@ -259,7 +261,14 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
     metaTitle: product?.metaTitle || "",
     metaDescription: product?.metaDescription || "",
     canonicalUrl: product?.canonicalUrl || "",
+    skipMetaGeneration: product?.skipMetaGeneration || false,
   });
+
+  // Product URL generation
+  const [baseUrl, setBaseUrl] = useState("https://example.com");
+  const [productUrlFormat, setProductUrlFormat] = useState("/{def-category-slug}/{product-slug}");
+  const [productUrlSuffix, setProductUrlSuffix] = useState(".html");
+  const [productUrl, setProductUrl] = useState("");
 
   // Measurement config
   const [measurementEnabled, setMeasurementEnabled] = useState(!!product?.measurementConfig);
@@ -283,7 +292,34 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   useEffect(() => {
     fetchReferenceData();
     fetchVatPercentage();
+    fetchBaseUrl();
+    fetchSeoSettings();
   }, []);
+
+  const fetchBaseUrl = async () => {
+    try {
+      const response = await generalSettingsService.getGeneralSettings();
+      if (response.data.baseUrl) {
+        setBaseUrl(response.data.baseUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching base URL:", error);
+    }
+  };
+
+  const fetchSeoSettings = async () => {
+    try {
+      const response = await seoSettingsService.getSeoSettings();
+      if (response.data.productUrlFormat) {
+        setProductUrlFormat(response.data.productUrlFormat);
+      }
+      if (response.data.productUrlSuffix) {
+        setProductUrlSuffix(response.data.productUrlSuffix);
+      }
+    } catch (error) {
+      console.error("Error fetching SEO settings:", error);
+    }
+  };
 
   const fetchVatPercentage = async () => {
     try {
@@ -323,6 +359,41 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       setSlug(generatedSlug);
     }
   }, [name, autoSlug]);
+
+  // Generate product URL based on SEO settings
+  useEffect(() => {
+    if (!slug || !productUrlFormat) {
+      setProductUrl("");
+      return;
+    }
+
+    // Find primary category
+    const primaryCategory = selectedCategories.find(c => c.isPrimary);
+    let categorySlug = "uncategorized";
+
+    if (primaryCategory) {
+      // Find category in the flattened categories array
+      const flatCategories = flattenCategories(categories);
+      const category = flatCategories.find(c => c.id === primaryCategory.categoryId);
+      if (category?.slug) {
+        categorySlug = category.slug;
+      }
+    }
+
+    // Generate URL by replacing placeholders
+    let url = productUrlFormat
+      .replace(/{product-slug}/g, slug)
+      .replace(/{def-category-slug}/g, categorySlug);
+
+    const fullUrl = `${baseUrl}${url}${productUrlSuffix}`;
+    setProductUrl(fullUrl);
+
+    // Auto-populate canonical URL with the real URL
+    setSeoData(prev => ({
+      ...prev,
+      canonicalUrl: fullUrl
+    }));
+  }, [slug, productUrlFormat, productUrlSuffix, baseUrl, selectedCategories, categories]);
 
   // Update combination SKUs when base SKU changes
   useEffect(() => {
@@ -546,6 +617,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
         canonicalUrl: seoData.canonicalUrl || undefined,
+        skipMetaGeneration: seoData.skipMetaGeneration,
       };
 
       if (mode === "create") {
@@ -1453,7 +1525,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
         );
 
       case "seo":
-        return <SeoForm data={seoData} onChange={setSeoData} entityName={name} />;
+        return <SeoForm data={seoData} onChange={setSeoData} entityName={name} productUrl={productUrl} />;
 
       default:
         return null;

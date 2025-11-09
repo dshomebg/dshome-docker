@@ -11,3 +11,6 @@ export * from './inventory';
 export * from './orders';
 export * from './catalog-settings';
 export * from './faceted-navigation';
+export * from './seo-settings';
+export * from './general-settings';
+export * from './rich-snippets-settings';

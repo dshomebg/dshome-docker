@@ -19,6 +19,7 @@ export const categories = pgTable('categories', {
   metaTitle: varchar('meta_title', { length: 255 }),
   metaDescription: text('meta_description'),
   canonicalUrl: varchar('canonical_url', { length: 500 }),
+  skipMetaGeneration: boolean('skip_meta_generation').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
