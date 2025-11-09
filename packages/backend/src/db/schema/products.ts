@@ -9,6 +9,8 @@ import { warehouses } from './warehouses';
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived']);
 export const productTypeEnum = pgEnum('product_type', ['simple', 'combination']);
 export const discountTypeEnum = pgEnum('discount_type', ['fixed', 'percentage']);
+export const calculationTypeEnum = pgEnum('calculation_type', ['package_based', 'minimum_quantity', 'step_quantity']);
+export const measurementStatusEnum = pgEnum('measurement_status', ['active', 'inactive']);
 
 export const products = pgTable('products', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -122,6 +124,41 @@ export const productPrices = pgTable('product_prices', {
   createdAt: timestamp('created_at').notNull().defaultNow()
 });
 
+// Measurement Rules - Templates for calculation rules
+export const measurementRules = pgTable('measurement_rules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(), // e.g. "Пакети м²", "Минимално количество"
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+  description: text('description'),
+  calculationType: calculationTypeEnum('calculation_type').notNull(), // package_based, minimum_quantity, step_quantity
+  status: measurementStatusEnum('status').notNull().default('active'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+// Product Measurement Config - Configuration for each product using measurement rules
+export const productMeasurementConfig = pgTable('product_measurement_config', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }).unique(), // One config per product
+  measurementRuleId: uuid('measurement_rule_id').notNull().references(() => measurementRules.id),
+
+  // Unit labels
+  pricingUnit: varchar('pricing_unit', { length: 50 }).notNull(), // e.g. "м²", "м", "кг"
+  sellingUnit: varchar('selling_unit', { length: 50 }).notNull(), // e.g. "пакет", "опаковка", "ролка"
+
+  // Configuration values (used based on calculation type)
+  unitsPerPackage: decimal('units_per_package', { precision: 10, scale: 3 }), // For package_based: 1.44 for tiles
+  minimumQuantity: decimal('minimum_quantity', { precision: 10, scale: 3 }), // For minimum_quantity: minimum units to sell
+  stepQuantity: decimal('step_quantity', { precision: 10, scale: 3 }), // For step_quantity: increment step (0.5m, 1m, etc.)
+
+  // Display options
+  displayBothUnits: boolean('display_both_units').notNull().default(true), // Show both pricing unit and selling unit
+  calculatorEnabled: boolean('calculator_enabled').notNull().default(true), // Enable calculator widget
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 // Type exports
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
@@ -137,3 +174,7 @@ export type ProductImage = typeof productImages.$inferSelect;
 export type NewProductImage = typeof productImages.$inferInsert;
 export type ProductPrice = typeof productPrices.$inferSelect;
 export type NewProductPrice = typeof productPrices.$inferInsert;
+export type MeasurementRule = typeof measurementRules.$inferSelect;
+export type NewMeasurementRule = typeof measurementRules.$inferInsert;
+export type ProductMeasurementConfig = typeof productMeasurementConfig.$inferSelect;
+export type NewProductMeasurementConfig = typeof productMeasurementConfig.$inferInsert;

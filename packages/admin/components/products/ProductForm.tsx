@@ -10,6 +10,7 @@ import { categoriesService, Category } from "@/lib/services/categories.service";
 import { featuresService } from "@/lib/services/features.service";
 import { warehousesService } from "@/lib/services/warehouses.service";
 import { catalogSettingsService } from "@/lib/services/catalog-settings.service";
+import { measurementRulesService, MeasurementRule } from "@/lib/services/measurement-rules.service";
 import TiptapEditor from "../editor/TiptapEditor";
 import ProductImagesUpload from "./ProductImagesUpload";
 import AddCharacteristicModal from "./AddCharacteristicModal";
@@ -22,7 +23,7 @@ interface ProductFormProps {
   mode: "create" | "edit";
 }
 
-type TabId = "basic" | "prices" | "combinations" | "seo";
+type TabId = "basic" | "prices" | "combinations" | "measurement" | "seo";
 
 interface Tab {
   id: TabId;
@@ -34,6 +35,7 @@ const tabs: Tab[] = [
   { id: "basic", label: "Основна информация" },
   { id: "prices", label: "Цени" },
   { id: "combinations", label: "Комбинации" },
+  { id: "measurement", label: "Пакети/м²" },
   { id: "seo", label: "SEO" },
 ];
 
@@ -259,12 +261,24 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
     canonicalUrl: product?.canonicalUrl || "",
   });
 
+  // Measurement config
+  const [measurementEnabled, setMeasurementEnabled] = useState(!!product?.measurementConfig);
+  const [selectedRuleId, setSelectedRuleId] = useState(product?.measurementConfig?.measurementRuleId || "");
+  const [pricingUnit, setPricingUnit] = useState(product?.measurementConfig?.pricingUnit || "м²");
+  const [sellingUnit, setSellingUnit] = useState(product?.measurementConfig?.sellingUnit || "пакет");
+  const [unitsPerPackage, setUnitsPerPackage] = useState(product?.measurementConfig?.unitsPerPackage || "");
+  const [minimumQuantity, setMinimumQuantity] = useState(product?.measurementConfig?.minimumQuantity || "");
+  const [stepQuantity, setStepQuantity] = useState(product?.measurementConfig?.stepQuantity || "");
+  const [displayBothUnits, setDisplayBothUnits] = useState(product?.measurementConfig?.displayBothUnits ?? true);
+  const [calculatorEnabled, setCalculatorEnabled] = useState(product?.measurementConfig?.calculatorEnabled ?? true);
+
   // Reference data
   const [brands, setBrands] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featureGroups, setFeatureGroups] = useState<any[]>([]);
   const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [measurementRules, setMeasurementRules] = useState<MeasurementRule[]>([]);
 
   useEffect(() => {
     fetchReferenceData();
@@ -426,18 +440,20 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
 
   const fetchReferenceData = async () => {
     try {
-      const [brandsRes, suppliersRes, categoriesRes, featuresRes, warehousesRes] = await Promise.all([
+      const [brandsRes, suppliersRes, categoriesRes, featuresRes, warehousesRes, rulesRes] = await Promise.all([
         brandsService.getBrands({ limit: 1000 }),
         suppliersService.getSuppliers({ limit: 1000 }),
         categoriesService.getCategoryTree(),
         featuresService.getFeatureGroups({ limit: 1000, status: 'active' }),
         warehousesService.getWarehouses({ limit: 1000, status: 'active' }),
+        measurementRulesService.getMeasurementRules({ limit: 1000, status: 'active' }),
       ]);
       setBrands(brandsRes.data);
       setSuppliers(suppliersRes.data);
       setCategories(categoriesRes.data);
       setFeatureGroups(featuresRes.data);
       setWarehouses(warehousesRes.data);
+      setMeasurementRules(rulesRes.data);
     } catch (error) {
       console.error("Error fetching reference data:", error);
     }
@@ -516,6 +532,16 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
         discountStartDate: hasDiscount && discountStartDate ? discountStartDate : undefined,
         discountEndDate: hasDiscount && discountEndDate ? discountEndDate : undefined,
         promotionalPrice: hasDiscount && promotionalPrice ? parseFloat(promotionalPrice) : undefined,
+        measurementConfig: measurementEnabled && selectedRuleId ? {
+          measurementRuleId: selectedRuleId,
+          pricingUnit,
+          sellingUnit,
+          unitsPerPackage: unitsPerPackage || undefined,
+          minimumQuantity: minimumQuantity || undefined,
+          stepQuantity: stepQuantity || undefined,
+          displayBothUnits,
+          calculatorEnabled,
+        } : undefined,
         status,
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
@@ -1207,6 +1233,222 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 onChange={setCombinations}
               />
             )}
+          </div>
+        );
+
+      case "measurement":
+        return (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Модул: Пакети/м²
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Активирай специален модул за продажба по пакети и мерни единици
+                  </p>
+                </div>
+              </div>
+
+              {/* Enable Measurement */}
+              <div className="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
+                <input
+                  type="checkbox"
+                  id="measurementEnabled"
+                  checked={measurementEnabled}
+                  onChange={(e) => setMeasurementEnabled(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300"
+                />
+                <label htmlFor="measurementEnabled" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Активирай модула за този продукт
+                </label>
+              </div>
+
+              {measurementEnabled && (
+                <div className="space-y-4">
+                  {/* Rule Selection */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Изберете правило за изчисление <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedRuleId}
+                      onChange={(e) => {
+                        const ruleId = e.target.value;
+                        setSelectedRuleId(ruleId);
+
+                        // Find the selected rule and set defaults
+                        const rule = measurementRules.find(r => r.id === ruleId);
+                        if (rule) {
+                          if (rule.calculationType === 'package_based') {
+                            setPricingUnit("м²");
+                            setSellingUnit("пакет");
+                          } else if (rule.calculationType === 'minimum_quantity') {
+                            setPricingUnit("м");
+                            setSellingUnit("м");
+                          } else if (rule.calculationType === 'step_quantity') {
+                            setPricingUnit("м");
+                            setSellingUnit("м");
+                          }
+                        }
+                      }}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                    >
+                      <option value="">-- Изберете правило --</option>
+                      {measurementRules.map((rule) => (
+                        <option key={rule.id} value={rule.id}>
+                          {rule.name}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedRuleId && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        {measurementRules.find(r => r.id === selectedRuleId)?.description}
+                      </p>
+                    )}
+                    {measurementRules.length === 0 && (
+                      <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-400">
+                        Няма създадени правила. Моля създайте правило от секция{" "}
+                        <a href="/modules/measurement-packages" className="font-medium underline">
+                          Модули &gt; Пакети/м²
+                        </a>
+                      </p>
+                    )}
+                  </div>
+
+                  {selectedRuleId && (
+                    <>
+                      {/* Unit Labels */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Мерна единица за ценообразуване <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={pricingUnit}
+                            onChange={(e) => setPricingUnit(e.target.value)}
+                            placeholder="м², м, кг..."
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                          />
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Например: м², м, кг
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Единица за продажба <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={sellingUnit}
+                            onChange={(e) => setSellingUnit(e.target.value)}
+                            placeholder="пакет, опаковка, ролка..."
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                          />
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Например: пакет, опаковка, ролка
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Type-specific fields */}
+                      {measurementRules.find(r => r.id === selectedRuleId)?.calculationType === 'package_based' && (
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Мерни единици в един пакет <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={unitsPerPackage}
+                            onChange={(e) => setUnitsPerPackage(e.target.value)}
+                            placeholder="1.44"
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                          />
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Например: 1.44 м² за плочки
+                          </p>
+                        </div>
+                      )}
+
+                      {measurementRules.find(r => r.id === selectedRuleId)?.calculationType === 'minimum_quantity' && (
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Минимално количество за поръчка <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={minimumQuantity}
+                            onChange={(e) => setMinimumQuantity(e.target.value)}
+                            placeholder="3"
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                          />
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Минимално количество, което може да бъде поръчано
+                          </p>
+                        </div>
+                      )}
+
+                      {measurementRules.find(r => r.id === selectedRuleId)?.calculationType === 'step_quantity' && (
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Стъпка на увеличение <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={stepQuantity}
+                            onChange={(e) => setStepQuantity(e.target.value)}
+                            placeholder="0.5"
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                          />
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Например: 0.5м, 1м (продажба само на стъпки)
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Display Options */}
+                      <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Опции за показване
+                        </h4>
+
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="displayBothUnits"
+                            checked={displayBothUnits}
+                            onChange={(e) => setDisplayBothUnits(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <label htmlFor="displayBothUnits" className="text-sm text-gray-700 dark:text-gray-300">
+                            Покажи и двете мерни единици
+                          </label>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="calculatorEnabled"
+                            checked={calculatorEnabled}
+                            onChange={(e) => setCalculatorEnabled(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <label htmlFor="calculatorEnabled" className="text-sm text-gray-700 dark:text-gray-300">
+                            Активирай калкулатор
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         );
 

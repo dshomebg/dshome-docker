@@ -11,6 +11,7 @@ import {
   Wrench,
   ChevronDown,
   ChevronRight,
+  Puzzle,
 } from "lucide-react";
 
 interface MenuItem {
@@ -51,6 +52,13 @@ const menuItems: MenuItem[] = [
       { title: "Клиенти", path: "/sales/customers" },
       { title: "Куриери", path: "/sales/couriers" },
       { title: "Статуси", path: "/sales/statuses" },
+    ],
+  },
+  {
+    title: "Модули",
+    icon: Puzzle,
+    children: [
+      { title: "Пакети/м²", path: "/modules/measurement-packages" },
     ],
   },
   {

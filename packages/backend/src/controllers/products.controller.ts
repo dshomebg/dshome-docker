@@ -9,6 +9,7 @@ import {
   productCombinations,
   productCombinationAttributes,
   productFeatures,
+  productMeasurementConfig,
   brands,
   suppliers,
   categories
@@ -266,6 +267,13 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
 
     const totalInventory = inventory.reduce((sum, inv) => sum + inv.quantity, 0);
 
+    // Get measurement configuration
+    const [measurementConfig] = await db
+      .select()
+      .from(productMeasurementConfig)
+      .where(eq(productMeasurementConfig.productId, id))
+      .limit(1);
+
     const result = {
       ...productData.product,
       brand: productData.brand?.id ? productData.brand : null,
@@ -276,7 +284,8 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
       combinations,
       features,
       inventory,
-      totalInventory
+      totalInventory,
+      measurementConfig: measurementConfig || null
     };
 
     res.json({ data: result });
@@ -294,7 +303,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage, canonicalUrl, robotsIndex, robotsFollow,
       status, categories: cats, price, priceWithoutVat, supplierPrice, compareAtPrice,
       discountType, discountValue, discountStartDate, discountEndDate, promotionalPrice,
-      images, features, quantity, warehouseId, combinations
+      images, features, quantity, warehouseId, combinations, measurementConfig
     } = req.body;
 
     // Check if SKU already exists
@@ -432,6 +441,22 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       }
     }
 
+    // Create measurement configuration
+    if (measurementConfig && measurementConfig.measurementRuleId) {
+      await db.insert(productMeasurementConfig).values({
+        productId: newProduct.id,
+        measurementRuleId: measurementConfig.measurementRuleId,
+        pricingUnit: measurementConfig.pricingUnit,
+        sellingUnit: measurementConfig.sellingUnit,
+        unitsPerPackage: measurementConfig.unitsPerPackage || null,
+        minimumQuantity: measurementConfig.minimumQuantity || null,
+        stepQuantity: measurementConfig.stepQuantity || null,
+        displayBothUnits: measurementConfig.displayBothUnits !== undefined ? measurementConfig.displayBothUnits : true,
+        calculatorEnabled: measurementConfig.calculatorEnabled !== undefined ? measurementConfig.calculatorEnabled : true
+      });
+      logger.info(`Created measurement config for product: ${newProduct.id}`);
+    }
+
     logger.info(`Created product: ${newProduct.name} (${newProduct.id})`);
 
     res.status(201).json({ data: newProduct });
@@ -475,7 +500,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage, canonicalUrl, robotsIndex, robotsFollow,
       status, categories: cats, price, priceWithoutVat, supplierPrice, compareAtPrice,
       discountType, discountValue, discountStartDate, discountEndDate, promotionalPrice,
-      images, features, quantity, warehouseId, combinations
+      images, features, quantity, warehouseId, combinations, measurementConfig
     } = updateData;
 
     // Update product
@@ -636,6 +661,30 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
             );
           }
         }
+      }
+    }
+
+    // Update measurement configuration
+    if (measurementConfig !== undefined) {
+      // Delete existing measurement config
+      await db.delete(productMeasurementConfig).where(eq(productMeasurementConfig.productId, id));
+
+      // Create new measurement config if provided with a rule ID
+      if (measurementConfig && measurementConfig.measurementRuleId) {
+        await db.insert(productMeasurementConfig).values({
+          productId: id,
+          measurementRuleId: measurementConfig.measurementRuleId,
+          pricingUnit: measurementConfig.pricingUnit,
+          sellingUnit: measurementConfig.sellingUnit,
+          unitsPerPackage: measurementConfig.unitsPerPackage || null,
+          minimumQuantity: measurementConfig.minimumQuantity || null,
+          stepQuantity: measurementConfig.stepQuantity || null,
+          displayBothUnits: measurementConfig.displayBothUnits !== undefined ? measurementConfig.displayBothUnits : true,
+          calculatorEnabled: measurementConfig.calculatorEnabled !== undefined ? measurementConfig.calculatorEnabled : true
+        });
+        logger.info(`Updated measurement config for product: ${id}`);
+      } else {
+        logger.info(`Removed measurement config for product: ${id}`);
       }
     }
 

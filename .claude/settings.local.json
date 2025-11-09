@@ -48,7 +48,9 @@
       "Bash(nul)",
       "Bash(cmd /c taskkill /PID 1528 /F)",
       "Bash(cmd /c taskkill /PID 39800 /F)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(docker exec:*)",
+      "Bash(cmd /c \"move packages\\admin\\app\\modules packages\\admin\\app\\(dashboard)\\modules\")"
     ],
     "deny": [],
     "ask": []

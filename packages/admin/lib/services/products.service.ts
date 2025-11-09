@@ -129,6 +129,18 @@ export interface ProductFormData {
   discountEndDate?: string;
   promotionalPrice?: number;
 
+  // Measurement configuration
+  measurementConfig?: {
+    measurementRuleId: string;
+    pricingUnit: string;
+    sellingUnit: string;
+    unitsPerPackage?: string;
+    minimumQuantity?: string;
+    stepQuantity?: string;
+    displayBothUnits: boolean;
+    calculatorEnabled: boolean;
+  };
+
   // SEO
   metaTitle?: string;
   metaDescription?: string;

@@ -11,6 +11,7 @@ import catalogSettingsRoutes from './catalog-settings.routes';
 import facetedNavigationRoutes from './faceted-navigation.routes';
 import uploadRoutes from './upload.routes';
 import productsRoutes from './products.routes';
+import measurementRulesRoutes from './measurement-rules.routes';
 
 const router: Router = Router();
 
@@ -26,5 +27,6 @@ router.use('/catalog-settings', catalogSettingsRoutes);
 router.use('/faceted-navigation', facetedNavigationRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/products', productsRoutes);
+router.use('/measurement-rules', measurementRulesRoutes);
 
 export default router;
