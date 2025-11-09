@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { categoriesService, Category } from "@/lib/services/categories.service";
 import CategoryTreeSelect from "./CategoryTreeSelect";
 import ImageUpload from "../ui/ImageUpload";
-import SeoForm from "../seo/SeoForm";
+import TiptapEditor from "../editor/TiptapEditor";
 import { SeoFormData } from "@dshome/shared";
 
 interface CategoryFormProps {
@@ -16,11 +16,13 @@ interface CategoryFormProps {
 export default function CategoryForm({ category, mode }: CategoryFormProps) {
   const router = useRouter();
   const [name, setName] = useState(category?.name || "");
+  const [h1, setH1] = useState(category?.h1 || "");
   const [slug, setSlug] = useState(category?.slug || "");
   const [description, setDescription] = useState(category?.description || "");
   const [image, setImage] = useState(category?.image || "");
   const [parentId, setParentId] = useState<string | null>(category?.parentId || null);
   const [status, setStatus] = useState<"active" | "inactive">(category?.status || "active");
+  const [style, setStyle] = useState<"navigation" | "product">(category?.style || "product");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -28,13 +30,7 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
   const [seoData, setSeoData] = useState<SeoFormData>({
     metaTitle: category?.metaTitle || "",
     metaDescription: category?.metaDescription || "",
-    metaKeywords: category?.metaKeywords || "",
-    ogTitle: category?.ogTitle || "",
-    ogDescription: category?.ogDescription || "",
-    ogImage: category?.ogImage || "",
     canonicalUrl: category?.canonicalUrl || "",
-    robotsIndex: category?.robotsIndex !== false,
-    robotsFollow: category?.robotsFollow !== false,
   });
 
   useEffect(() => {
@@ -71,8 +67,12 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
 
   useEffect(() => {
     if (mode === "create" && name) {
+      // Auto-generate slug from name
       const generatedSlug = generateSlug(name);
       setSlug(generatedSlug);
+
+      // Auto-generate h1 from name
+      setH1(name);
     }
   }, [name, mode]);
 
@@ -89,7 +89,7 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
     e.preventDefault();
 
     if (!name.trim() || !slug.trim()) {
-      alert("Name and slug are required");
+      alert("Името и slug-а са задължителни");
       return;
     }
 
@@ -103,30 +103,26 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
         image: image || undefined,
         parentId: parentId || undefined,
         status,
+        style,
+        h1: h1 || undefined,
         // SEO fields
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
-        metaKeywords: seoData.metaKeywords || undefined,
-        ogTitle: seoData.ogTitle || undefined,
-        ogDescription: seoData.ogDescription || undefined,
-        ogImage: seoData.ogImage || undefined,
         canonicalUrl: seoData.canonicalUrl || undefined,
-        robotsIndex: seoData.robotsIndex,
-        robotsFollow: seoData.robotsFollow,
       };
 
       if (mode === "create") {
         const response = await categoriesService.createCategory(data);
-        alert("Category created successfully");
+        alert("Категорията е създадена успешно");
         router.push(`/catalog/categories/${response.data.id}`);
       } else if (mode === "edit" && category) {
         await categoriesService.updateCategory(category.id, data);
-        alert("Category updated successfully");
+        alert("Категорията е актуализирана успешно");
         router.push("/catalog/categories");
       }
     } catch (error: any) {
       console.error("Error saving category:", error);
-      alert(error.response?.data?.message || "Failed to save category");
+      alert(error.response?.data?.message || "Неуспешно запазване на категорията");
     } finally {
       setLoading(false);
     }
@@ -136,70 +132,67 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
     <div className="p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-title-md font-bold text-gray-900 dark:text-white">
-          {mode === "create" ? "Create Category" : "Edit Category"}
+          {mode === "create" ? "Създаване на категория" : "Редакция на категория"}
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Categories help organize products in a hierarchical structure
+          Категориите помагат за организацията на продуктите в йерархична структура
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Basic Information
+            Основна информация
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Name <span className="text-error-500">*</span>
+                Име <span className="text-error-500">*</span>
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Electronics, Clothing"
+                placeholder="напр. Електроника, Дрехи"
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                 required
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Използва се вътрешно в системата
+              </p>
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Slug <span className="text-error-500">*</span>
+                H1 Заглавие
               </label>
               <input
                 type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="e.g., electronics, clothing"
+                value={h1}
+                onChange={(e) => setH1(e.target.value)}
+                placeholder="напр. Обзавеждане за баня"
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                required
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                URL-friendly version of the name
+                Заглавие, което ще се показва на потребителите (автоматично се попълва с името)
               </p>
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Description
+                Описание
               </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Category description..."
-                rows={4}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              <TiptapEditor
+                content={description}
+                onChange={setDescription}
+                placeholder="Описание на категорията..."
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Consider integrating a WYSIWYG editor here for rich text
-              </p>
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Category Image
+                Изображение на категорията
               </label>
               <ImageUpload
                 value={image}
@@ -210,7 +203,7 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Parent Category
+                Родителска категория
               </label>
               <CategoryTreeSelect
                 categories={categories}
@@ -222,27 +215,122 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Status
+                Статус
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "active" | "inactive")}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Активна</option>
+                <option value="inactive">Неактивна</option>
               </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Стил
+              </label>
+              <select
+                value={style}
+                onChange={(e) => setStyle(e.target.value as "navigation" | "product")}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              >
+                <option value="product">Продуктова</option>
+                <option value="navigation">Навигация</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Продуктова категория може да съдържа продукти, навигационна е само за меню
+              </p>
             </div>
           </div>
         </div>
 
-        {/* SEO Settings using SeoForm component */}
+        {/* SEO Settings */}
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-white/[0.03]">
-          <SeoForm
-            data={seoData}
-            onChange={setSeoData}
-            entityName={name}
-          />
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            SEO Настройки
+          </h2>
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+            Оптимизирайте съдържанието за търсачки
+          </p>
+
+          <div className="space-y-4">
+            {/* URL Slug */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                URL Slug <span className="text-error-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="напр. elektronika, drehi"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                required
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                URL-friendly версия на името (автоматично генериран)
+              </p>
+            </div>
+
+            {/* Meta Title */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Meta Заглавие
+                <span className={`ml-2 text-xs font-semibold ${(seoData.metaTitle?.length || 0) <= 60 ? 'text-success-500' : 'text-error-500'}`}>
+                  ({seoData.metaTitle?.length || 0}/60 символа)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={seoData.metaTitle || ""}
+                onChange={(e) => setSeoData({ ...seoData, metaTitle: e.target.value || null })}
+                placeholder="Оптимално: 50-60 символа"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Заглавието, което ще се показва в резултатите от търсенето
+              </p>
+            </div>
+
+            {/* Meta Description */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Meta Описание
+                <span className={`ml-2 text-xs font-semibold ${(seoData.metaDescription?.length || 0) <= 160 ? 'text-success-500' : 'text-error-500'}`}>
+                  ({seoData.metaDescription?.length || 0}/160 символа)
+                </span>
+              </label>
+              <textarea
+                value={seoData.metaDescription || ""}
+                onChange={(e) => setSeoData({ ...seoData, metaDescription: e.target.value || null })}
+                placeholder="Оптимално: 150-160 символа"
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Кратко описание за резултатите от търсенето
+              </p>
+            </div>
+
+            {/* Canonical URL */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Каноничен URL
+              </label>
+              <input
+                type="url"
+                value={seoData.canonicalUrl || ""}
+                onChange={(e) => setSeoData({ ...seoData, canonicalUrl: e.target.value || null })}
+                placeholder="https://example.com/canonical-page"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Задайте каноничен URL, ако тази страница е дубликат
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-3">
@@ -251,14 +339,14 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
             disabled={loading}
             className="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-300 disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700"
           >
-            {loading ? "Saving..." : mode === "create" ? "Create Category" : "Update Category"}
+            {loading ? "Запазване..." : mode === "create" ? "Създай категория" : "Актуализирай категория"}
           </button>
           <button
             type="button"
             onClick={() => router.push("/catalog/categories")}
             className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
           >
-            Cancel
+            Отказ
           </button>
         </div>
       </form>

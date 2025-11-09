@@ -42,7 +42,10 @@
       "Bash(cmd //c taskkill //PID 15156 //F)",
       "Bash(cmd //c taskkill //PID 32616 //F)",
       "Bash(cmd //c taskkill //PID 5584 //F)",
-      "Bash(cmd /c taskkill /PID 12948 /F)"
+      "Bash(cmd /c taskkill /PID 12948 /F)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm --silent tsx -e:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []

@@ -9,17 +9,14 @@ export interface Category {
   parentId: string | null;
   position: number;
   status: 'active' | 'inactive';
+  style: 'navigation' | 'product';
+  h1: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
-  metaKeywords: string | null;
-  ogTitle: string | null;
-  ogDescription: string | null;
-  ogImage: string | null;
   canonicalUrl: string | null;
-  robotsIndex: boolean;
-  robotsFollow: boolean;
   createdAt: string;
   updatedAt: string;
+  productCount?: number;
   children?: Category[];
 }
 
@@ -72,15 +69,11 @@ export const categoriesService = {
     image?: string;
     parentId?: string;
     status?: 'active' | 'inactive';
+    style?: 'navigation' | 'product';
+    h1?: string;
     metaTitle?: string;
     metaDescription?: string;
-    metaKeywords?: string;
-    ogTitle?: string;
-    ogDescription?: string;
-    ogImage?: string;
     canonicalUrl?: string;
-    robotsIndex?: boolean;
-    robotsFollow?: boolean;
   }): Promise<CategoryResponse> => {
     const response = await apiClient.post<CategoryResponse>('/categories', data);
     return response.data;
@@ -95,15 +88,11 @@ export const categoriesService = {
       image?: string;
       parentId?: string;
       status?: 'active' | 'inactive';
+      style?: 'navigation' | 'product';
+      h1?: string;
       metaTitle?: string;
       metaDescription?: string;
-      metaKeywords?: string;
-      ogTitle?: string;
-      ogDescription?: string;
-      ogImage?: string;
       canonicalUrl?: string;
-      robotsIndex?: boolean;
-      robotsFollow?: boolean;
     }
   ): Promise<CategoryResponse> => {
     const response = await apiClient.put<CategoryResponse>(`/categories/${id}`, data);

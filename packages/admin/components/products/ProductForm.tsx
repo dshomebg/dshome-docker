@@ -102,12 +102,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
     metaTitle: product?.metaTitle || "",
     metaDescription: product?.metaDescription || "",
     metaKeywords: product?.metaKeywords || "",
-    ogTitle: product?.ogTitle || "",
-    ogDescription: product?.ogDescription || "",
-    ogImage: product?.ogImage || "",
     canonicalUrl: product?.canonicalUrl || "",
-    robotsIndex: product?.robotsIndex !== false,
-    robotsFollow: product?.robotsFollow !== false,
   });
 
   // Reference data
@@ -268,12 +263,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
         metaKeywords: seoData.metaKeywords || undefined,
-        ogTitle: seoData.ogTitle || undefined,
-        ogDescription: seoData.ogDescription || undefined,
-        ogImage: seoData.ogImage || undefined,
         canonicalUrl: seoData.canonicalUrl || undefined,
-        robotsIndex: seoData.robotsIndex,
-        robotsFollow: seoData.robotsFollow,
       };
 
       if (mode === "create") {

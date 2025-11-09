@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
-import { categories } from '../db/schema';
+import { categories, productCategories } from '../db/schema';
 import { eq, desc, ilike, isNull, count } from 'drizzle-orm';
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../utils/logger';
@@ -107,15 +107,18 @@ export const getCategory = async (req: Request, res: Response, next: NextFunctio
 // Create new category
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { 
-      name, 
-      slug, 
-      description, 
-      image, 
-      parentId, 
-      status, 
-      metaTitle, 
-      metaDescription 
+    const {
+      name,
+      slug,
+      description,
+      image,
+      parentId,
+      status,
+      style,
+      h1,
+      metaTitle,
+      metaDescription,
+      canonicalUrl
     } = req.body;
 
     if (!name || !slug) {
@@ -141,8 +144,11 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
         image: image || null,
         parentId: parentId || null,
         status: status || 'active',
+        style: style || 'product',
+        h1: h1 || null,
         metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
+        canonicalUrl: canonicalUrl || null,
       })
       .returning();
 
@@ -157,15 +163,18 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { 
-      name, 
-      slug, 
-      description, 
-      image, 
-      parentId, 
-      status, 
-      metaTitle, 
-      metaDescription 
+    const {
+      name,
+      slug,
+      description,
+      image,
+      parentId,
+      status,
+      style,
+      h1,
+      metaTitle,
+      metaDescription,
+      canonicalUrl
     } = req.body;
 
     // Check if category exists
@@ -204,8 +213,11 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         image: image !== undefined ? image : existing.image,
         parentId: parentId !== undefined ? parentId : existing.parentId,
         status: status || existing.status,
+        style: style || existing.style,
+        h1: h1 !== undefined ? h1 : existing.h1,
         metaTitle: metaTitle !== undefined ? metaTitle : existing.metaTitle,
         metaDescription: metaDescription !== undefined ? metaDescription : existing.metaDescription,
+        canonicalUrl: canonicalUrl !== undefined ? canonicalUrl : existing.canonicalUrl,
         updatedAt: new Date(),
       })
       .where(eq(categories.id, id))
@@ -265,7 +277,23 @@ export const getCategoryTree = async (req: Request, res: Response, next: NextFun
     }
 
     const allCategories = await query.orderBy(categories.position, categories.name);
-    const tree = buildCategoryTree(allCategories);
+
+    // Get product counts for each category
+    const categoriesWithCounts = await Promise.all(
+      allCategories.map(async (category) => {
+        const [result] = await db
+          .select({ count: count() })
+          .from(productCategories)
+          .where(eq(productCategories.categoryId, category.id));
+
+        return {
+          ...category,
+          productCount: result?.count || 0,
+        };
+      })
+    );
+
+    const tree = buildCategoryTree(categoriesWithCounts);
 
     logger.info(`Built category tree with ${allCategories.length} categories`);
     res.json({ data: tree });

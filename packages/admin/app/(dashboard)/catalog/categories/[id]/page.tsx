@@ -30,7 +30,7 @@ export default function EditCategoryPage() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+        <div className="text-gray-500 dark:text-gray-400">Зареждане...</div>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export default function EditCategoryPage() {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-gray-500 dark:text-gray-400">
-          Category not found
+          Категорията не е намерена
         </div>
       </div>
     );

@@ -17,7 +17,7 @@ interface TreeNodeProps {
 }
 
 function TreeNode({ category, level, onDelete }: TreeNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const hasChildren = category.children && category.children.length > 0;
 
   return (
@@ -52,32 +52,53 @@ function TreeNode({ category, level, onDelete }: TreeNodeProps) {
                 : "bg-gray-100 text-gray-800 dark:bg-gray-500/10 dark:text-gray-400"
             }`}
           >
-            {category.status}
+            {category.status === "active" ? "Активна" : "Неактивна"}
           </span>
         </td>
         <td className="px-6 py-4">
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            {category.slug}
+            {category.productCount || 0}
           </div>
         </td>
         <td className="px-6 py-4">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {new Date(category.createdAt).toLocaleDateString()}
-          </div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2">
             <Link
               href={`/catalog/categories/${category.id}`}
-              className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-brand-400"
+              title="Редактирай"
             >
-              Edit
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
             </Link>
             <button
               onClick={() => onDelete(category.id, category.name)}
-              className="text-sm font-medium text-error-600 hover:text-error-700 dark:text-error-400 dark:hover:text-error-300"
+              className="rounded-lg p-2 text-gray-600 hover:bg-error-50 hover:text-error-600 dark:text-gray-400 dark:hover:bg-error-500/10 dark:hover:text-error-400"
+              title="Изтрий"
             >
-              Delete
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
             </button>
           </div>
         </td>
@@ -104,7 +125,7 @@ export default function CategoryTreeView({
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+        <div className="text-gray-500 dark:text-gray-400">Зареждане...</div>
       </div>
     );
   }
@@ -125,7 +146,7 @@ export default function CategoryTreeView({
             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
           />
         </svg>
-        <p className="text-gray-500 dark:text-gray-400">No categories found</p>
+        <p className="text-gray-500 dark:text-gray-400">Няма намерени категории</p>
       </div>
     );
   }
@@ -135,19 +156,16 @@ export default function CategoryTreeView({
       <thead>
         <tr className="border-b border-gray-200 bg-gray-50 text-left dark:border-white/[0.05] dark:bg-white/[0.02]">
           <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-            Name
+            Име
           </th>
           <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-            Status
+            Статус
           </th>
           <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-            Slug
-          </th>
-          <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-            Created
+            Брой продукти
           </th>
           <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-            Actions
+            Действия
           </th>
         </tr>
       </thead>
