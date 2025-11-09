@@ -8,6 +8,7 @@ import { warehouses } from './warehouses';
 
 export const productStatusEnum = pgEnum('product_status', ['active', 'inactive', 'archived']);
 export const productTypeEnum = pgEnum('product_type', ['simple', 'combination']);
+export const discountTypeEnum = pgEnum('discount_type', ['fixed', 'percentage']);
 
 export const products = pgTable('products', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -103,8 +104,18 @@ export const productImages = pgTable('product_images', {
 export const productPrices = pgTable('product_prices', {
   id: uuid('id').primaryKey().defaultRandom(),
   productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(), // Price with VAT
+  priceWithoutVat: decimal('price_without_vat', { precision: 10, scale: 2 }), // Price without VAT
+  supplierPrice: decimal('supplier_price', { precision: 10, scale: 2 }), // Cost price (always without VAT)
   compareAtPrice: decimal('compare_at_price', { precision: 10, scale: 2 }),
+
+  // Discount fields
+  discountType: discountTypeEnum('discount_type'), // fixed amount or percentage
+  discountValue: decimal('discount_value', { precision: 10, scale: 2 }), // Amount or percentage value
+  discountStartDate: timestamp('discount_start_date'),
+  discountEndDate: timestamp('discount_end_date'),
+  promotionalPrice: decimal('promotional_price', { precision: 10, scale: 2 }), // Price after discount
+
   currency: varchar('currency', { length: 3 }).notNull().default('EUR'),
   validFrom: timestamp('valid_from').notNull().defaultNow(),
   validTo: timestamp('valid_to'),

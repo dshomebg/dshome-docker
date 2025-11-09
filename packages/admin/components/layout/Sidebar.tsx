@@ -40,6 +40,7 @@ const menuItems: MenuItem[] = [
       { title: "Марки", path: "/catalog/brands" },
       { title: "Доставчици", path: "/catalog/suppliers" },
       { title: "Складове", path: "/catalog/warehouses" },
+      { title: "Настройки", path: "/catalog/settings" },
     ],
   },
   {

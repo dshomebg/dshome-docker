@@ -22,13 +22,7 @@ export interface Product {
   // SEO
   metaTitle?: string;
   metaDescription?: string;
-  metaKeywords?: string;
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImage?: string;
   canonicalUrl?: string;
-  robotsIndex: boolean;
-  robotsFollow: boolean;
 
   status: 'active' | 'inactive' | 'archived';
   createdAt: string;
@@ -125,17 +119,20 @@ export interface ProductFormData {
   // Pricing
   price: number;
   compareAtPrice?: number;
+  priceWithoutVat?: number;
+  supplierPrice?: number;
+
+  // Discount
+  discountType?: 'fixed' | 'percentage';
+  discountValue?: number;
+  discountStartDate?: string;
+  discountEndDate?: string;
+  promotionalPrice?: number;
 
   // SEO
   metaTitle?: string;
   metaDescription?: string;
-  metaKeywords?: string;
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImage?: string;
   canonicalUrl?: string;
-  robotsIndex?: boolean;
-  robotsFollow?: boolean;
 
   status: 'active' | 'inactive' | 'archived';
 }

@@ -292,7 +292,9 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       sku, name, slug, shortDescription, description, productType,
       brandId, supplierId, weight, width, height, depth,
       metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage, canonicalUrl, robotsIndex, robotsFollow,
-      status, categories: cats, price, compareAtPrice, images, features, quantity, warehouseId, combinations
+      status, categories: cats, price, priceWithoutVat, supplierPrice, compareAtPrice,
+      discountType, discountValue, discountStartDate, discountEndDate, promotionalPrice,
+      images, features, quantity, warehouseId, combinations
     } = req.body;
 
     // Check if SKU already exists
@@ -379,7 +381,14 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       await db.insert(productPrices).values({
         productId: newProduct.id,
         price: String(price),
+        priceWithoutVat: priceWithoutVat ? String(priceWithoutVat) : null,
+        supplierPrice: supplierPrice ? String(supplierPrice) : null,
         compareAtPrice: compareAtPrice ? String(compareAtPrice) : null,
+        discountType: discountType || null,
+        discountValue: discountValue ? String(discountValue) : null,
+        discountStartDate: discountStartDate || null,
+        discountEndDate: discountEndDate || null,
+        promotionalPrice: promotionalPrice ? String(promotionalPrice) : null,
         currency: 'EUR'
       });
     }
@@ -464,7 +473,9 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       sku, name, slug, shortDescription, description, productType,
       brandId, supplierId, weight, width, height, depth,
       metaTitle, metaDescription, metaKeywords, ogTitle, ogDescription, ogImage, canonicalUrl, robotsIndex, robotsFollow,
-      status, categories: cats, price, compareAtPrice, images, features, quantity, warehouseId, combinations
+      status, categories: cats, price, priceWithoutVat, supplierPrice, compareAtPrice,
+      discountType, discountValue, discountStartDate, discountEndDate, promotionalPrice,
+      images, features, quantity, warehouseId, combinations
     } = updateData;
 
     // Update product
@@ -555,7 +566,14 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       await db.insert(productPrices).values({
         productId: id,
         price: String(price),
+        priceWithoutVat: priceWithoutVat ? String(priceWithoutVat) : null,
+        supplierPrice: supplierPrice ? String(supplierPrice) : null,
         compareAtPrice: compareAtPrice ? String(compareAtPrice) : null,
+        discountType: discountType || null,
+        discountValue: discountValue ? String(discountValue) : null,
+        discountStartDate: discountStartDate || null,
+        discountEndDate: discountEndDate || null,
+        promotionalPrice: promotionalPrice ? String(promotionalPrice) : null,
         currency: 'EUR'
       });
     }

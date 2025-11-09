@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, ChevronRight, ChevronDown, Search } from "lucide-react";
 import { productsService, Product, ProductFormData } from "@/lib/services/products.service";
 import { brandsService } from "@/lib/services/brands.service";
 import { suppliersService } from "@/lib/services/suppliers.service";
 import { categoriesService, Category } from "@/lib/services/categories.service";
 import { featuresService } from "@/lib/services/features.service";
 import { warehousesService } from "@/lib/services/warehouses.service";
+import { catalogSettingsService } from "@/lib/services/catalog-settings.service";
 import TiptapEditor from "../editor/TiptapEditor";
 import ProductImagesUpload from "./ProductImagesUpload";
 import AddCharacteristicModal from "./AddCharacteristicModal";
@@ -21,7 +22,7 @@ interface ProductFormProps {
   mode: "create" | "edit";
 }
 
-type TabId = "basic" | "prices" | "images" | "combinations" | "associations" | "seo";
+type TabId = "basic" | "prices" | "combinations" | "seo";
 
 interface Tab {
   id: TabId;
@@ -32,17 +33,160 @@ interface Tab {
 const tabs: Tab[] = [
   { id: "basic", label: "Основна информация" },
   { id: "prices", label: "Цени" },
-  { id: "images", label: "Снимки" },
   { id: "combinations", label: "Комбинации" },
-  { id: "associations", label: "Асоциации" },
   { id: "seo", label: "SEO" },
 ];
+
+// Helper function to flatten category tree into a flat array
+const flattenCategories = (categories: Category[]): Category[] => {
+  const result: Category[] = [];
+
+  const flatten = (cats: Category[]) => {
+    cats.forEach(cat => {
+      result.push(cat);
+      if (cat.children && cat.children.length > 0) {
+        flatten(cat.children);
+      }
+    });
+  };
+
+  flatten(categories);
+  return result;
+};
+
+// Recursive component to render category tree with expand/collapse
+interface CategoryTreeItemProps {
+  category: Category;
+  level: number;
+  selectedCategories: Array<{ categoryId: string; isPrimary: boolean }>;
+  onToggle: (categoryId: string, checked: boolean) => void;
+  onSetPrimary: (categoryId: string) => void;
+  searchTerm: string;
+}
+
+const CategoryTreeItem = ({
+  category,
+  level,
+  selectedCategories,
+  onToggle,
+  onSetPrimary,
+  searchTerm
+}: CategoryTreeItemProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isSelected = selectedCategories.some(c => c.categoryId === category.id);
+  const isPrimary = selectedCategories.find(c => c.categoryId === category.id)?.isPrimary || false;
+  const hasChildren = category.children && category.children.length > 0;
+
+  // Auto-expand if search term matches this category or any child
+  const categoryMatchesSearch = (cat: Category, term: string): boolean => {
+    if (cat.name.toLowerCase().includes(term.toLowerCase())) return true;
+    if (cat.children) {
+      return cat.children.some(child => categoryMatchesSearch(child, term));
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    if (searchTerm && hasChildren) {
+      // Expand if this category or any child matches search
+      setIsExpanded(categoryMatchesSearch(category, searchTerm));
+    } else if (!searchTerm) {
+      // Collapse all when search is cleared
+      setIsExpanded(false);
+    }
+  }, [searchTerm, category, hasChildren]);
+
+  // Hide if doesn't match search
+  const matchesSearch = !searchTerm || category.name.toLowerCase().includes(searchTerm.toLowerCase());
+  if (!matchesSearch && !hasChildren) return null;
+
+  return (
+    <>
+      <div
+        className="mb-1 flex items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded px-1 py-0.5"
+        style={{ paddingLeft: `${level * 20}px` }}
+      >
+        {/* Expand/Collapse Button */}
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+        ) : (
+          <span className="w-5" />
+        )}
+
+        {/* Checkbox */}
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => onToggle(category.id, e.target.checked)}
+          className="h-4 w-4 rounded border-gray-300"
+        />
+
+        {/* Category Name */}
+        <label
+          className={`flex-1 text-sm cursor-pointer ${
+            matchesSearch
+              ? "text-gray-800 dark:text-white/90"
+              : "text-gray-500 dark:text-gray-500"
+          }`}
+          onClick={() => hasChildren && setIsExpanded(!isExpanded)}
+        >
+          {category.name}
+          {hasChildren && (
+            <span className="ml-1 text-xs text-gray-400">
+              ({category.children?.length})
+            </span>
+          )}
+        </label>
+
+        {/* Primary Radio */}
+        {isSelected && (
+          <input
+            type="radio"
+            name="primaryCategory"
+            checked={isPrimary}
+            onChange={() => onSetPrimary(category.id)}
+            className="h-4 w-4"
+            title="По подразбиране"
+          />
+        )}
+      </div>
+
+      {/* Children - Only show if expanded */}
+      {hasChildren && isExpanded && (
+        <>
+          {category.children!.map((child) => (
+            <CategoryTreeItem
+              key={child.id}
+              category={child}
+              level={level + 1}
+              selectedCategories={selectedCategories}
+              onToggle={onToggle}
+              onSetPrimary={onSetPrimary}
+              searchTerm={searchTerm}
+            />
+          ))}
+        </>
+      )}
+    </>
+  );
+};
 
 export default function ProductForm({ product, mode }: ProductFormProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>("basic");
   const [loading, setLoading] = useState(false);
   const [showCharacteristicModal, setShowCharacteristicModal] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
 
   // Basic Info
   const [sku, setSku] = useState(product?.sku || "");
@@ -61,6 +205,17 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   // Prices
   const [price, setPrice] = useState(product?.currentPrice?.price || "");
   const [compareAtPrice, setCompareAtPrice] = useState(product?.currentPrice?.compareAtPrice || "");
+  const [priceWithoutVat, setPriceWithoutVat] = useState(product?.priceWithoutVat || "");
+  const [supplierPrice, setSupplierPrice] = useState(product?.supplierPrice || "");
+  const [vatPercentage, setVatPercentage] = useState(20); // Default 20%, will be loaded from settings
+
+  // Discount
+  const [hasDiscount, setHasDiscount] = useState(!!product?.currentPrice?.discountType);
+  const [discountType, setDiscountType] = useState<'fixed' | 'percentage' | ''>(product?.currentPrice?.discountType || 'fixed');
+  const [discountValue, setDiscountValue] = useState(product?.currentPrice?.discountValue || "");
+  const [discountStartDate, setDiscountStartDate] = useState(product?.currentPrice?.discountStartDate || "");
+  const [discountEndDate, setDiscountEndDate] = useState(product?.currentPrice?.discountEndDate || "");
+  const [promotionalPrice, setPromotionalPrice] = useState(product?.currentPrice?.promotionalPrice || "");
 
   // Simple quantity for basic tab
   const [quantity, setQuantity] = useState(product?.totalInventory?.toString() || "0");
@@ -101,7 +256,6 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   const [seoData, setSeoData] = useState<SeoFormData>({
     metaTitle: product?.metaTitle || "",
     metaDescription: product?.metaDescription || "",
-    metaKeywords: product?.metaKeywords || "",
     canonicalUrl: product?.canonicalUrl || "",
   });
 
@@ -114,7 +268,17 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
 
   useEffect(() => {
     fetchReferenceData();
+    fetchVatPercentage();
   }, []);
+
+  const fetchVatPercentage = async () => {
+    try {
+      const response = await catalogSettingsService.getCatalogSettings();
+      setVatPercentage(parseFloat(response.data.vatPercentage));
+    } catch (error) {
+      console.error("Error fetching VAT percentage:", error);
+    }
+  };
 
   // Transliteration map for Cyrillic to Latin
   const transliterate = (text: string): string => {
@@ -173,6 +337,92 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       setQuantity(String(totalQty));
     }
   }, [combinations, productType]);
+
+  // Auto-calculate priceWithoutVat when price changes
+  useEffect(() => {
+    if (price && vatPercentage > 0) {
+      const priceNum = parseFloat(price);
+      if (!isNaN(priceNum)) {
+        const calculatedPriceWithoutVat = priceNum / (1 + vatPercentage / 100);
+        setPriceWithoutVat(calculatedPriceWithoutVat.toFixed(2));
+      }
+    }
+  }, [price, vatPercentage]);
+
+  // Auto-calculate price when priceWithoutVat changes manually
+  const handlePriceWithoutVatChange = (value: string) => {
+    setPriceWithoutVat(value);
+    if (value && vatPercentage > 0) {
+      const priceWithoutVatNum = parseFloat(value);
+      if (!isNaN(priceWithoutVatNum)) {
+        const calculatedPrice = priceWithoutVatNum * (1 + vatPercentage / 100);
+        setPrice(calculatedPrice.toFixed(2));
+      }
+    }
+  };
+
+  // Auto-calculate promotional price when discount changes
+  useEffect(() => {
+    if (hasDiscount && discountType && discountValue && price) {
+      const priceNum = parseFloat(price);
+      const discountValueNum = parseFloat(discountValue);
+
+      if (!isNaN(priceNum) && !isNaN(discountValueNum)) {
+        let calculatedPromotionalPrice = 0;
+
+        if (discountType === 'fixed') {
+          calculatedPromotionalPrice = priceNum - discountValueNum;
+        } else if (discountType === 'percentage') {
+          calculatedPromotionalPrice = priceNum - (priceNum * discountValueNum / 100);
+        }
+
+        setPromotionalPrice(calculatedPromotionalPrice.toFixed(2));
+      }
+    } else {
+      setPromotionalPrice("");
+    }
+  }, [hasDiscount, discountType, discountValue, price]);
+
+  // Calculate margin as computed value
+  const calculateMargin = (): number | null => {
+    const priceWithoutVatNum = parseFloat(priceWithoutVat);
+    const supplierPriceNum = parseFloat(supplierPrice);
+
+    if (!isNaN(priceWithoutVatNum) && !isNaN(supplierPriceNum) && priceWithoutVatNum > 0) {
+      return ((priceWithoutVatNum - supplierPriceNum) / priceWithoutVatNum) * 100;
+    }
+    return null;
+  };
+
+  const margin = calculateMargin();
+
+  // Calculate margin after discount
+  const calculateMarginAfterDiscount = (): number | null => {
+    if (!hasDiscount || !promotionalPrice || !priceWithoutVat || !supplierPrice) {
+      return null;
+    }
+
+    const promotionalPriceNum = parseFloat(promotionalPrice);
+    const supplierPriceNum = parseFloat(supplierPrice);
+
+    if (!isNaN(promotionalPriceNum) && !isNaN(supplierPriceNum) && promotionalPriceNum > 0) {
+      // Calculate price without VAT for promotional price
+      const promotionalPriceWithoutVat = promotionalPriceNum / (1 + vatPercentage / 100);
+
+      return ((promotionalPriceWithoutVat - supplierPriceNum) / promotionalPriceWithoutVat) * 100;
+    }
+    return null;
+  };
+
+  const marginAfterDiscount = calculateMarginAfterDiscount();
+
+  // Get margin color based on value
+  const getMarginColor = (marginValue: number | null): string => {
+    if (marginValue === null) return "text-gray-500";
+    if (marginValue > 20) return "text-green-600 dark:text-green-400";
+    if (marginValue > 0) return "text-yellow-600 dark:text-yellow-400";
+    return "text-red-600 dark:text-red-400";
+  };
 
   const fetchReferenceData = async () => {
     try {
@@ -259,10 +509,16 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
         depth: depth ? parseFloat(depth) : undefined,
         price: parseFloat(price),
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+        priceWithoutVat: priceWithoutVat ? parseFloat(priceWithoutVat) : undefined,
+        supplierPrice: supplierPrice ? parseFloat(supplierPrice) : undefined,
+        discountType: hasDiscount && discountType ? discountType : undefined,
+        discountValue: hasDiscount && discountValue ? parseFloat(discountValue) : undefined,
+        discountStartDate: hasDiscount && discountStartDate ? discountStartDate : undefined,
+        discountEndDate: hasDiscount && discountEndDate ? discountEndDate : undefined,
+        promotionalPrice: hasDiscount && promotionalPrice ? parseFloat(promotionalPrice) : undefined,
         status,
         metaTitle: seoData.metaTitle || undefined,
         metaDescription: seoData.metaDescription || undefined,
-        metaKeywords: seoData.metaKeywords || undefined,
         canonicalUrl: seoData.canonicalUrl || undefined,
       };
 
@@ -533,53 +789,48 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                   Категории <span className="text-error-500">*</span>
                 </label>
 
+                {/* Category Search */}
+                <div className="relative mb-2">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Търсене на категория..."
+                    value={categorySearchTerm}
+                    onChange={(e) => setCategorySearchTerm(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                  />
+                </div>
+
                 {/* Category Tree with Checkboxes */}
                 <div className="mb-3 max-h-64 overflow-y-auto rounded-lg border border-gray-300 p-3 dark:border-gray-700">
                   {categories.length > 0 ? (
-                    categories.map((category) => {
-                      const isSelected = selectedCategories.some(c => c.categoryId === category.id);
-                      const isPrimary = selectedCategories.find(c => c.categoryId === category.id)?.isPrimary || false;
-
-                      return (
-                        <div key={category.id} className="mb-2 flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedCategories([
-                                  ...selectedCategories,
-                                  { categoryId: category.id, isPrimary: selectedCategories.length === 0 }
-                                ]);
-                              } else {
-                                setSelectedCategories(selectedCategories.filter(c => c.categoryId !== category.id));
-                              }
-                            }}
-                            className="h-4 w-4 rounded border-gray-300"
-                          />
-                          <label className="flex-1 text-sm text-gray-800 dark:text-white/90">
-                            {category.name}
-                          </label>
-                          {isSelected && (
-                            <input
-                              type="radio"
-                              name="primaryCategory"
-                              checked={isPrimary}
-                              onChange={() => {
-                                setSelectedCategories(
-                                  selectedCategories.map(c => ({
-                                    ...c,
-                                    isPrimary: c.categoryId === category.id
-                                  }))
-                                );
-                              }}
-                              className="h-4 w-4"
-                              title="По подразбиране"
-                            />
-                          )}
-                        </div>
-                      );
-                    })
+                    categories.map((category) => (
+                      <CategoryTreeItem
+                        key={category.id}
+                        category={category}
+                        level={0}
+                        selectedCategories={selectedCategories}
+                        searchTerm={categorySearchTerm}
+                        onToggle={(categoryId, checked) => {
+                          if (checked) {
+                            setSelectedCategories([
+                              ...selectedCategories,
+                              { categoryId, isPrimary: selectedCategories.length === 0 }
+                            ]);
+                          } else {
+                            setSelectedCategories(selectedCategories.filter(c => c.categoryId !== categoryId));
+                          }
+                        }}
+                        onSetPrimary={(categoryId) => {
+                          setSelectedCategories(
+                            selectedCategories.map(c => ({
+                              ...c,
+                              isPrimary: c.categoryId === categoryId
+                            }))
+                          );
+                        }}
+                      />
+                    ))
                   ) : (
                     <p className="text-sm text-gray-500 dark:text-gray-400">Няма налични категории</p>
                   )}
@@ -589,7 +840,9 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 {selectedCategories.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {selectedCategories.map((sc) => {
-                      const category = categories.find(c => c.id === sc.categoryId);
+                      // Use flattened categories to find category at any level
+                      const allCategories = flattenCategories(categories);
+                      const category = allCategories.find(c => c.id === sc.categoryId);
                       if (!category) return null;
 
                       return (
@@ -654,48 +907,252 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       case "prices":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Цена <span className="text-error-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                    required
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
-                    EUR
-                  </span>
+            {/* Default Pricing Section */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                Ценообразуване по подразбиране
+              </h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* Price Without VAT */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Цена без ДДС
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={priceWithoutVat}
+                      onChange={(e) => handlePriceWithoutVatChange(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      EUR
+                    </span>
+                  </div>
                 </div>
+
+                {/* Price With VAT */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Цена с ДДС <span className="text-error-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                      required
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      EUR
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    ДДС: {vatPercentage}%
+                  </p>
+                </div>
+
+                {/* Supplier Price */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Доставна цена
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={supplierPrice}
+                      onChange={(e) => setSupplierPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      EUR
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Цена от доставчик
+                  </p>
+                </div>
+
+                {/* Margin (Read-only, Computed) */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Марж
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={margin !== null ? `${margin.toFixed(2)}%` : "N/A"}
+                      readOnly
+                      className={`w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 pr-12 text-sm font-medium ${getMarginColor(margin)} placeholder:text-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-800`}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Автоматично изчислен
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Discount Section */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                  Намаление
+                </h3>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={hasDiscount}
+                    onChange={(e) => {
+                      setHasDiscount(e.target.checked);
+                      if (!e.target.checked) {
+                        setDiscountType('');
+                        setDiscountValue('');
+                        setDiscountStartDate('');
+                        setDiscountEndDate('');
+                        setPromotionalPrice('');
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Активирай намаление</span>
+                </label>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Цена за сравнение
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={compareAtPrice}
-                    onChange={(e) => setCompareAtPrice(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
-                    EUR
-                  </span>
+              {hasDiscount && (
+                <div className="space-y-4">
+                  {/* Discount Type */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Тип намаление
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="discountType"
+                          value="fixed"
+                          checked={discountType === 'fixed'}
+                          onChange={(e) => setDiscountType(e.target.value as 'fixed' | 'percentage')}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-800 dark:text-white/90">Фиксирана сума</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="discountType"
+                          value="percentage"
+                          checked={discountType === 'percentage'}
+                          onChange={(e) => setDiscountType(e.target.value as 'fixed' | 'percentage')}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-800 dark:text-white/90">Процент</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {/* Discount Value */}
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Стойност на намалението
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={discountValue}
+                          onChange={(e) => setDiscountValue(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                          {discountType === 'percentage' ? '%' : 'EUR'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Promotional Price (Read-only) */}
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Промоционална цена
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={promotionalPrice ? `${parseFloat(promotionalPrice).toFixed(2)}` : "0.00"}
+                          readOnly
+                          className="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 pr-12 text-sm font-medium text-gray-800 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                          EUR
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Автоматично изчислена
+                      </p>
+                    </div>
+
+                    {/* Discount Start Date */}
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Начална дата
+                      </label>
+                      <input
+                        type="date"
+                        value={discountStartDate}
+                        onChange={(e) => setDiscountStartDate(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                      />
+                    </div>
+
+                    {/* Discount End Date */}
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Крайна дата
+                      </label>
+                      <input
+                        type="date"
+                        value={discountEndDate}
+                        onChange={(e) => setDiscountEndDate(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                      />
+                    </div>
+
+                    {/* Margin After Discount */}
+                    {marginAfterDiscount !== null && (
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Марж след намаление
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={`${marginAfterDiscount.toFixed(2)}%`}
+                            readOnly
+                            className={`w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 pr-12 text-sm font-medium ${getMarginColor(marginAfterDiscount)} placeholder:text-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-800`}
+                          />
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          Автоматично изчислен
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Използва се за показване на отстъпка
-                </p>
-              </div>
+              )}
             </div>
 
             {productType === "simple" && (
@@ -705,17 +1162,6 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 </p>
               </div>
             )}
-          </div>
-        );
-
-      case "images":
-        return (
-          <div className="space-y-6">
-            <ProductImagesUpload
-              images={images}
-              productName={name || "Продукт"}
-              onChange={setImages}
-            />
           </div>
         );
 
@@ -760,213 +1206,6 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 combinations={combinations}
                 onChange={setCombinations}
               />
-            )}
-          </div>
-        );
-
-      case "associations":
-        return (
-          <div className="space-y-6">
-            {/* Categories */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Категории <span className="text-error-500">*</span>
-              </label>
-              <div className="space-y-3">
-                {categories.length > 0 ? (
-                  categories.map((category) => {
-                    const isSelected = selectedCategories.some(c => c.categoryId === category.id);
-                    const isPrimary = selectedCategories.find(c => c.categoryId === category.id)?.isPrimary || false;
-
-                    return (
-                      <div key={category.id} className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedCategories([
-                                ...selectedCategories,
-                                { categoryId: category.id, isPrimary: selectedCategories.length === 0 }
-                              ]);
-                            } else {
-                              setSelectedCategories(selectedCategories.filter(c => c.categoryId !== category.id));
-                            }
-                          }}
-                          className="h-4 w-4 rounded border-gray-300"
-                        />
-                        <label className="flex-1 text-sm text-gray-800 dark:text-white/90">
-                          {category.name}
-                        </label>
-                        {isSelected && (
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name="primaryCategory"
-                              checked={isPrimary}
-                              onChange={() => {
-                                setSelectedCategories(
-                                  selectedCategories.map(c => ({
-                                    ...c,
-                                    isPrimary: c.categoryId === category.id
-                                  }))
-                                );
-                              }}
-                              className="h-4 w-4"
-                            />
-                            <span className="text-xs text-gray-600 dark:text-gray-400">Главна</span>
-                          </label>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Няма налични категории</p>
-                )}
-              </div>
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Изберете поне една категория. Точно една трябва да бъде маркирана като главна.
-              </p>
-            </div>
-
-            {/* Brand */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Марка
-              </label>
-              <select
-                value={brandId}
-                onChange={(e) => setBrandId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              >
-                <option value="">Без марка</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Supplier */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Доставчик
-              </label>
-              <select
-                value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-              >
-                <option value="">Без доставчик</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Features */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Характеристики
-              </label>
-              <div className="space-y-4">
-                {featureGroups.length > 0 ? (
-                  featureGroups.map((group) => (
-                    <div key={group.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                      <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                        {group.name}
-                      </h4>
-                      {group.values && group.values.length > 0 ? (
-                        <div className="space-y-2">
-                          {group.values.map((value: any) => {
-                            const isSelected = selectedFeatures.some(f => f.featureValueId === value.id);
-                            return (
-                              <label key={value.id} className="flex items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedFeatures([...selectedFeatures, { featureValueId: value.id }]);
-                                    } else {
-                                      setSelectedFeatures(selectedFeatures.filter(f => f.featureValueId !== value.id));
-                                    }
-                                  }}
-                                  className="h-4 w-4 rounded border-gray-300"
-                                />
-                                <span className="text-sm text-gray-800 dark:text-white/90">{value.name}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Няма стойности</p>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Няма налични характеристики
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Inventory - Only for simple products */}
-            {productType === "simple" && (
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Наличности по складове
-                </label>
-                <div className="space-y-3">
-                  {warehouses.length > 0 ? (
-                    warehouses.map((warehouse) => {
-                      const inventoryItem = inventoryData.find(inv => inv.warehouseId === warehouse.id);
-                      return (
-                        <div key={warehouse.id} className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                          <label className="flex-1 text-sm text-gray-800 dark:text-white/90">
-                            {warehouse.name}
-                          </label>
-                          <div className="w-32">
-                            <input
-                              type="number"
-                              min="0"
-                              value={inventoryItem?.quantity || 0}
-                              onChange={(e) => {
-                                const quantity = parseInt(e.target.value) || 0;
-                                const existing = inventoryData.find(inv => inv.warehouseId === warehouse.id);
-                                if (existing) {
-                                  setInventoryData(
-                                    inventoryData.map(inv =>
-                                      inv.warehouseId === warehouse.id
-                                        ? { ...inv, quantity }
-                                        : inv
-                                    )
-                                  );
-                                } else {
-                                  setInventoryData([...inventoryData, { warehouseId: warehouse.id, quantity }]);
-                                }
-                              }}
-                              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-                              placeholder="0"
-                            />
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Няма налични складове
-                    </p>
-                  )}
-                </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  За продукти с комбинации, наличностите се управляват отделно за всяка комбинация.
-                </p>
-              </div>
             )}
           </div>
         );
