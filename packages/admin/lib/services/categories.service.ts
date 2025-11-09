@@ -14,6 +14,7 @@ export interface Category {
   metaTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
+  skipMetaGeneration: boolean;
   createdAt: string;
   updatedAt: string;
   productCount?: number;
@@ -74,6 +75,7 @@ export const categoriesService = {
     metaTitle?: string;
     metaDescription?: string;
     canonicalUrl?: string;
+    skipMetaGeneration?: boolean;
   }): Promise<CategoryResponse> => {
     const response = await apiClient.post<CategoryResponse>('/categories', data);
     return response.data;
@@ -93,6 +95,7 @@ export const categoriesService = {
       metaTitle?: string;
       metaDescription?: string;
       canonicalUrl?: string;
+      skipMetaGeneration?: boolean;
     }
   ): Promise<CategoryResponse> => {
     const response = await apiClient.put<CategoryResponse>(`/categories/${id}`, data);

@@ -23,6 +23,7 @@ export interface Product {
   metaTitle?: string;
   metaDescription?: string;
   canonicalUrl?: string;
+  skipMetaGeneration?: boolean;
 
   status: 'active' | 'inactive' | 'archived';
   createdAt: string;
@@ -145,6 +146,7 @@ export interface ProductFormData {
   metaTitle?: string;
   metaDescription?: string;
   canonicalUrl?: string;
+  skipMetaGeneration?: boolean;
 
   status: 'active' | 'inactive' | 'archived';
 }
