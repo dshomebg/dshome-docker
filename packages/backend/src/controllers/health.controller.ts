@@ -17,12 +17,14 @@ export const healthCheck = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
+    console.error('Database connection error:', error);
     res.status(503).json({
       success: false,
       data: {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        error: 'Database connection failed'
+        error: 'Database connection failed',
+        details: error instanceof Error ? error.message : String(error)
       }
     });
   }
