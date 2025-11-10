@@ -1,7 +1,11 @@
 import axios from "axios";
 
-// Hardcode API URL - env variables not working correctly in Next.js
-const API_URL = "http://localhost:4000/api";
+// Use relative URL for production compatibility
+// In browser: /api → proxied by Nginx to backend
+// In development: can be overridden with NEXT_PUBLIC_API_URL
+const API_URL = typeof window !== "undefined"
+  ? "/api"  // Browser: use relative URL (works with Nginx proxy)
+  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";  // Server-side
 
 export const apiClient = axios.create({
   baseURL: API_URL,

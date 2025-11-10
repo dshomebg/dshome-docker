@@ -16,7 +16,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       # Other env vars
       NODE_ENV: production
-      PORT: 3000
+      API_PORT: 3000
     volumes:
       # IMPORTANT: Mount uploads directory to preserve user files
       - ./packages/backend/uploads:/app/packages/backend/uploads
