@@ -72,9 +72,13 @@ export default function TiptapEditor({
   });
 
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
-      setHtmlContent(content);
+    if (editor && content !== undefined && content !== null) {
+      // Only update if content is different to avoid infinite loops
+      const currentContent = editor.getHTML();
+      if (content !== currentContent) {
+        editor.commands.setContent(content, false);
+        setHtmlContent(content);
+      }
     }
   }, [content, editor]);
 
