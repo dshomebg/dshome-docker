@@ -11,7 +11,7 @@ module.exports = {
       max_memory_restart: '512M',
       env: {
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://admin_dsdock:FWaAP4YD4UkvvptZS@localhost:5432/admin_dsdock',
+        DATABASE_URL: 'postgresql://admin_dsdock:1Borabora2@localhost:5432/admin_dsdock',
       },
       output: '/var/log/dshome/backend/out.log',
       error: '/var/log/dshome/backend/error.log',
