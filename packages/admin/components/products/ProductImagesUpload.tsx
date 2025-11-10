@@ -15,13 +15,17 @@ interface ProductImage {
 interface ProductImagesUploadProps {
   images: ProductImage[];
   productName: string;
+  productId?: string; // Optional: if provided, uses new multi-size image system
   onChange: (images: ProductImage[]) => void;
+  onAutoSave?: (newImages: ProductImage[]) => Promise<void>; // Optional: auto-save after delete, receives new images array
 }
 
 export default function ProductImagesUpload({
   images,
   productName,
+  productId,
   onChange,
+  onAutoSave,
 }: ProductImagesUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -42,7 +46,12 @@ export default function ProductImagesUpload({
       setUploading(true);
       setError(null);
 
-      const uploadPromises = files.map((file) => uploadImage(file));
+      // Use new multi-size system if productId is available
+      const uploadPromises = files.map((file) =>
+        productId
+          ? uploadImage(file, 'product', productId)
+          : uploadImage(file)
+      );
       const uploadedUrls = await Promise.all(uploadPromises);
 
       const newImages: ProductImage[] = uploadedUrls.map((url, index) => ({
@@ -63,7 +72,12 @@ export default function ProductImagesUpload({
     }
   };
 
-  const handleRemove = (index: number) => {
+  const handleRemove = async (index: number) => {
+    // Show confirmation dialog
+    if (!window.confirm('Сигурни ли сте, че искате да изтриете тази снимка?')) {
+      return;
+    }
+
     const newImages = images.filter((_, i) => i !== index);
     // Reorder positions and set first as primary
     const reorderedImages = newImages.map((img, i) => ({
@@ -72,6 +86,21 @@ export default function ProductImagesUpload({
       isPrimary: i === 0,
     }));
     onChange(reorderedImages);
+
+    // Auto-save if callback provided
+    // Pass the new images array to avoid React state timing issues
+    if (onAutoSave) {
+      try {
+        setUploading(true);
+        await onAutoSave(reorderedImages);
+        // Success message handled by parent
+      } catch (error) {
+        console.error('Error auto-saving after delete:', error);
+        alert('Грешка при записване на промените');
+      } finally {
+        setUploading(false);
+      }
+    }
   };
 
   const handleDragStart = (index: number) => {
@@ -127,7 +156,10 @@ export default function ProductImagesUpload({
       setError(null);
 
       const file = base64ToFile(editedImageBase64, `edited-${Date.now()}.png`);
-      const imageUrl = await uploadImage(file);
+      // Use new multi-size system if productId is available
+      const imageUrl = productId
+        ? await uploadImage(file, 'product', productId)
+        : await uploadImage(file);
 
       const newImages = images.map((img, i) =>
         i === editingImage.index ? { ...img, url: imageUrl } : img

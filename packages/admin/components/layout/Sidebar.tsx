@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
   Puzzle,
+  Palette,
 } from "lucide-react";
 
 interface MenuItem {
@@ -52,6 +53,13 @@ const menuItems: MenuItem[] = [
       { title: "Клиенти", path: "/sales/customers" },
       { title: "Куриери", path: "/sales/couriers" },
       { title: "Статуси", path: "/sales/statuses" },
+    ],
+  },
+  {
+    title: "Дизайн",
+    icon: Palette,
+    children: [
+      { title: "Изображения", path: "/design/image-sizes" },
     ],
   },
   {

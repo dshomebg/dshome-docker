@@ -20,6 +20,7 @@ export interface SeoFormData {
   canonicalUrl?: string;
   robotsIndex?: boolean;
   robotsFollow?: boolean;
+  skipMetaGeneration?: boolean;
 }
 
 export const DEFAULT_SEO: SeoData = {

@@ -12,8 +12,14 @@ router.post('/image', uploadImageMiddleware.single('image'), uploadController.up
 
 /**
  * DELETE /api/upload/image/:filename
- * Delete an image by filename
+ * Delete an image by filename (legacy - for backward compatibility)
  */
 router.delete('/image/:filename', uploadController.deleteImage);
+
+/**
+ * DELETE /api/upload/:entityType/:entityId
+ * Delete all images for an entity
+ */
+router.delete('/:entityType/:entityId', uploadController.deleteEntityImages);
 
 export default router;

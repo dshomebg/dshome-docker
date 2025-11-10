@@ -17,6 +17,7 @@ import {
 import { eq, desc, ilike, or, and, sql, isNull } from 'drizzle-orm';
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../utils/logger';
+import { ImageProcessingService } from '../services/image-processing.service';
 
 // Get all products with optional search and pagination
 export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -556,7 +557,22 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
     // Update images if provided
     if (images !== undefined) {
-      // Delete existing images and create new ones
+      // Get existing images from database
+      const existingImages = await db.select().from(productImages).where(eq(productImages.productId, id));
+
+      // Find URLs that are being removed (in existing but not in new)
+      const newUrls = new Set(images.map((img: any) => img.url));
+      const removedUrls = existingImages
+        .map(img => img.url)
+        .filter(url => !newUrls.has(url));
+
+      // Delete physical files for removed images
+      if (removedUrls.length > 0) {
+        logger.info(`Deleting ${removedUrls.length} removed images for product ${id}`);
+        await ImageProcessingService.deleteImagesByUrls(removedUrls);
+      }
+
+      // Delete existing images from database and create new ones
       await db.delete(productImages).where(eq(productImages.productId, id));
       if (images.length > 0) {
         await db.insert(productImages).values(
