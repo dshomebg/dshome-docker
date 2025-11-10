@@ -329,9 +329,7 @@ export default function TiptapEditor({
           placeholder="Enter HTML code..."
         />
       ) : (
-        <div className="prose prose-sm max-w-none dark:prose-invert">
-          <EditorContent editor={editor} className="dark:text-white/90" />
-        </div>
+        <EditorContent editor={editor} className="dark:text-white/90" />
       )}
     </div>
   );
