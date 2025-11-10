@@ -22,11 +22,12 @@ async function seed() {
     // Create default warehouse
     await db.insert(warehouses).values({
       name: 'Главен склад',
-      address: 'ул. Примерна 1, 1000 София',
-      phone: '+359 2 123 4567',
+      address: 'ул. Примерна 1',
+      postalCode: '1000',
       status: 'active',
       workingHours: 'Пон-Пет: 9:00-18:00',
-      isPhysicalStore: true
+      isPhysicalStore: true,
+      isDefault: true
     });
     console.log('✅ Default warehouse created');
 

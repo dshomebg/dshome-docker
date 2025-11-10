@@ -59,7 +59,8 @@
       "Bash(cmd /c taskkill /PID 36096 /F /T)",
       "Bash(cmd /c taskkill /PID 44716 /F /T)",
       "Bash(pnpm docker:dev:down:*)",
-      "Bash(pnpm docker:dev:up:*)"
+      "Bash(pnpm docker:dev:up:*)",
+      "Bash(sha256sum:*)"
     ],
     "deny": [],
     "ask": []

@@ -85,17 +85,18 @@ export const getWarehouse = async (req: Request, res: Response, next: NextFuncti
 // Create new warehouse
 export const createWarehouse = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, address, phone, workingHours, url, latitude, longitude, isPhysicalStore, status } = req.body;
+    const { name, address, postalCode, workingHours, url, latitude, longitude, isPhysicalStore, isDefault, status } = req.body;
 
     const [newWarehouse] = await db.insert(warehouses).values({
       name,
       address,
-      phone,
+      postalCode,
       workingHours,
       url,
       latitude: latitude && latitude !== '' ? latitude : null,
       longitude: longitude && longitude !== '' ? longitude : null,
       isPhysicalStore: isPhysicalStore || false,
+      isDefault: isDefault || false,
       status: status || 'active',
       updatedAt: new Date()
     }).returning();
@@ -112,7 +113,7 @@ export const createWarehouse = async (req: Request, res: Response, next: NextFun
 export const updateWarehouse = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { name, address, phone, workingHours, url, latitude, longitude, isPhysicalStore, status } = req.body;
+    const { name, address, postalCode, workingHours, url, latitude, longitude, isPhysicalStore, isDefault, status } = req.body;
 
     // Check if warehouse exists
     const [existingWarehouse] = await db.select().from(warehouses).where(eq(warehouses.id, id)).limit(1);
@@ -124,12 +125,13 @@ export const updateWarehouse = async (req: Request, res: Response, next: NextFun
       .set({
         name,
         address,
-        phone,
+        postalCode,
         workingHours,
         url,
         latitude: latitude && latitude !== '' ? latitude : null,
         longitude: longitude && longitude !== '' ? longitude : null,
         isPhysicalStore,
+        isDefault,
         status,
         updatedAt: new Date()
       })

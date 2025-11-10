@@ -5,16 +5,17 @@ export const warehouseStatusEnum = pgEnum('warehouse_status', ['active', 'inacti
 export const warehouses = pgTable('warehouses', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
-  address: text('address'),
-  phone: varchar('phone', { length: 50 }),
+  address: varchar('address', { length: 500 }).notNull(),
+  postalCode: varchar('postal_code', { length: 20 }).notNull(),
+  status: warehouseStatusEnum('status').notNull().default('active'),
+  isDefault: boolean('is_default').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
   workingHours: text('working_hours'),
-  url: varchar('url', { length: 500 }),
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
   isPhysicalStore: boolean('is_physical_store').notNull().default(false),
-  status: warehouseStatusEnum('status').notNull().default('active'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+  url: varchar('url', { length: 500 })
 });
 
 export type Warehouse = typeof warehouses.$inferSelect;
