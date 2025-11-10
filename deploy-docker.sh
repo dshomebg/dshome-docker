@@ -32,10 +32,13 @@ echo ""
 echo "Step 3: Uploading images to production server..."
 echo "------------------------------------------------"
 
-# Upload images
-scp -o StrictHostKeyChecking=no dshome-backend.tar $PRODUCTION_SERVER:$PRODUCTION_PATH/
-scp -o StrictHostKeyChecking=no dshome-admin.tar $PRODUCTION_SERVER:$PRODUCTION_PATH/
-scp -o StrictHostKeyChecking=no docker-compose.prod.yml $PRODUCTION_SERVER:$PRODUCTION_PATH/
+# Upload images using SSH pipe (scp doesn't work from Windows)
+echo "Uploading backend image..."
+cat dshome-backend.tar | ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER "cat > $PRODUCTION_PATH/dshome-backend.tar"
+echo "Uploading admin image..."
+cat dshome-admin.tar | ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER "cat > $PRODUCTION_PATH/dshome-admin.tar"
+echo "Uploading docker-compose file..."
+cat docker-compose.prod.yml | ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER "cat > $PRODUCTION_PATH/docker-compose.prod.yml"
 
 echo ""
 echo "Step 4: Deploying on production server..."
@@ -71,6 +74,8 @@ ssh -o StrictHostKeyChecking=no $PRODUCTION_SERVER << 'EOF'
 
   echo "Running migrations directly on host (not in Docker)..."
   # Migrations run on host where PostgreSQL is accessible via localhost
+  # Override DATABASE_URL to use localhost instead of host.docker.internal
+  export DATABASE_URL="postgresql://admin_dsdock:1Borabora2@localhost:5432/admin_dsdock"
   pnpm --filter @dshome/backend db:migrate
 
   echo "Migrations completed!"
