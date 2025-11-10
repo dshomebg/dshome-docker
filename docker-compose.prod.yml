@@ -25,8 +25,9 @@ services:
     networks:
       - dshome-network
     # Connect to host PostgreSQL (not in Docker)
+    # Use custom network gateway instead of default bridge gateway
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.18.0.1"
 
   # Admin Panel
   admin:
