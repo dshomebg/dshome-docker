@@ -66,7 +66,7 @@ export default function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none focus:outline-none min-h-[200px] px-4 py-3",
+          "focus:outline-none min-h-[200px] px-4 py-3",
       },
     },
   });
@@ -329,7 +329,9 @@ export default function TiptapEditor({
           placeholder="Enter HTML code..."
         />
       ) : (
-        <EditorContent editor={editor} className="dark:text-white/90" />
+        <div className="prose prose-sm max-w-none dark:prose-invert">
+          <EditorContent editor={editor} className="dark:text-white/90" />
+        </div>
       )}
     </div>
   );
