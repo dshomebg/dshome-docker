@@ -349,7 +349,232 @@ ssh -o StrictHostKeyChecking=no root@157.90.129.12 "
 
 ---
 
+## Production Runtime Грешки
+
+### 1. Admin панел се опитва да се свърже с localhost:4000
+
+**Грешка в browser console:**
+```
+localhost:4000/api/categories/tree:1 Failed to load resource: net::ERR_CONNECTION_REFUSED
+localhost:4000/api/products?page=1&limit=20:1 Failed to load resource: net::ERR_CONNECTION_REFUSED
+```
+
+**Причина:**
+Admin панелът (`packages/admin/lib/api.ts`) има **hardcoded** `const API_URL = "http://localhost:4000/api"` вместо да използва environment variable или относителен URL.
+
+**Проблем:**
+Next.js `NEXT_PUBLIC_*` променливи се вграждат (embed) по време на build, не по време на runtime. Дори да има правилно `NEXT_PUBLIC_API_URL` в docker-compose, ако admin image-ът е build-нат локално с неправилна конфигурация, той ще продължава да използва грешния URL.
+
+**Решение:**
+1. **Променете `packages/admin/lib/api.ts`:**
+```typescript
+// ПРЕДИ (❌ ГРЕШНО)
+const API_URL = "http://localhost:4000/api";
+
+// СЛЕД (✅ ПРАВИЛНО)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+```
+
+2. **Използвайте относителен URL като fallback:**
+   - Относителният URL `/api` ще работи чрез Nginx proxy
+   - Не зависи от environment variable
+   - Работи и локално и на production
+
+3. **Rebuild admin image:**
+```bash
+# Локално
+docker build -f packages/admin/Dockerfile -t dshome-admin:latest .
+
+# Deploy
+./deploy-docker.sh
+```
+
+**Алтернативно решение (по-добро):**
+Използвайте **само относителни URLs** във всички API calls:
+```typescript
+// packages/admin/lib/api.ts
+const API_URL = "/api";  // Винаги относителен
+```
+
+Nginx ще proxy-ва `/api/` към backend автоматично (configure в nginx.ssl.conf_custom).
+
+---
+
+### 2. Backend port mapping несъответствие
+
+**Проблем:**
+Backend слуша на порт 4000 вътре в контейнера, но docker-compose map-ва различен порт.
+
+**Симптоми:**
+- `curl http://localhost:3000/api/health` → Connection reset by peer
+- Backend логове казват "Server running on port 4000"
+- Docker map-ва 3000:3000 вместо 3000:4000
+
+**Причина:**
+Backend (`packages/backend/src/config/index.ts`) чете `API_PORT` environment variable, НЕ `PORT`:
+```typescript
+port: parseInt(process.env.API_PORT || '4000', 10),
+```
+
+Но `docker-compose.prod.yml` подаваше `PORT=3000` вместо `API_PORT=3000`.
+
+**Решение:**
+1. **Фиксирайте docker-compose.prod.yml:**
+```yaml
+environment:
+  API_PORT: 3000  # ← ПРАВИЛНО (не PORT)
+  DATABASE_URL: ${DATABASE_URL}
+```
+
+2. **Port mapping трябва да съвпада:**
+```yaml
+ports:
+  - "3000:3000"  # External:Internal
+```
+
+Сега backend слуша на internal 3000 и Docker map-ва external 3000 → internal 3000.
+
+---
+
+### 3. Nginx proxy към грешен порт
+
+**Проблем:**
+Nginx proxy-ваше към `localhost:4000`, но backend Docker контейнер е exposed на порт 3000.
+
+**Симптоми:**
+```
+nginx: [error] connect() failed (111: Connection refused) while connecting to upstream
+upstream: "http://127.0.0.1:4000/api/"
+```
+
+**Решение:**
+Променете `/home/admin/conf/web/dshome.dev/nginx.ssl.conf_custom`:
+```nginx
+# ПРЕДИ
+location /api/ {
+    proxy_pass http://localhost:4000/api/;
+    ...
+}
+
+# СЛЕД
+location /api/ {
+    proxy_pass http://localhost:3000/api/;
+    ...
+}
+```
+
+После reload nginx:
+```bash
+nginx -t && systemctl reload nginx
+```
+
+---
+
+### 4. PostgreSQL не приема Docker connections
+
+**Проблем:**
+Backend не може да се свърже с PostgreSQL през `host.docker.internal`.
+
+**Симптоми:**
+```json
+{"success":false,"data":{"status":"unhealthy","error":"Database connection failed"}}
+```
+
+Backend логове казват:
+```
+🗄️  Database: host.docker.internal:5432/admin_dsdock
+```
+
+Но connection fail-ва.
+
+**Причина:**
+PostgreSQL слуша само на `127.0.0.1:5432`, не приема connections от Docker контейнери.
+
+**Решение:**
+
+1. **Променете PostgreSQL да слуша на всички интерфейси:**
+```bash
+# /etc/postgresql/18/main/postgresql.conf
+listen_addresses = '*'  # Вместо 'localhost'
+```
+
+2. **Добавете Docker network в pg_hba.conf:**
+```bash
+# /etc/postgresql/18/main/pg_hba.conf
+# Добавете в края:
+host    all             all             172.16.0.0/12           md5
+```
+
+3. **Рестартирайте PostgreSQL:**
+```bash
+systemctl restart postgresql
+```
+
+4. **Рестартирайте backend контейнера:**
+```bash
+cd /opt/dshome
+docker compose -f docker-compose.prod.yml restart backend
+```
+
+**Верифициране:**
+```bash
+# PostgreSQL слуша на всички интерфейси
+netstat -tlnp | grep 5432
+# Трябва да видите: 0.0.0.0:5432
+
+# API health check работи
+curl https://dshome.dev/api/health
+# Трябва да върне: {"success":true,"data":{"status":"healthy",...}}
+```
+
+---
+
+### 5. DATABASE_URL с localhost вместо host.docker.internal
+
+**Проблем:**
+`.env` файлът на production съдържа `localhost` в DATABASE_URL, но Docker контейнери не могат да достигнат host през `localhost`.
+
+**Грешна конфигурация:**
+```env
+DATABASE_URL=postgresql://admin_dsdock:pass@localhost:5432/admin_dsdock
+```
+
+**Правилна конфигурация:**
+```env
+DATABASE_URL=postgresql://admin_dsdock:pass@host.docker.internal:5432/admin_dsdock
+```
+
+**Решение:**
+```bash
+sed -i 's/@localhost:/@host.docker.internal:/g' /opt/dshome/.env
+```
+
+Docker използва `host.docker.internal` за да достигне host machine от контейнера.
+
+---
+
+## Deployment Checklist (Docker)
+
+Преди deployment, проверете:
+
+- [ ] Admin `lib/api.ts` използва относителен URL `/api` или `process.env.NEXT_PUBLIC_API_URL`
+- [ ] `docker-compose.prod.yml` има `API_PORT: 3000` (не `PORT`)
+- [ ] Port mapping е `3000:3000` (съвпада с internal порт)
+- [ ] `.env` file има `host.docker.internal` в DATABASE_URL
+- [ ] Nginx proxy-ва към `localhost:3000/api/`
+- [ ] PostgreSQL `listen_addresses = '*'`
+- [ ] PostgreSQL `pg_hba.conf` има Docker network range
+- [ ] Health check работи: `curl https://dshome.dev/api/health`
+
+---
+
 ## История на деплоймънти
+
+### 2025-11-10 - Docker deployment debugging
+- Проблем: Admin се опитва да се свърже с localhost:4000
+- Причина: Hardcoded API_URL в lib/api.ts
+- Решение: Трябва да се промени на относителен URL и rebuild
+- Статус: Документирано, очаква fix в кода
 
 ### 2025-01-XX - Успешен деплоймънт след fixes
 - Commits: `b95020e`, `0d4a597`
