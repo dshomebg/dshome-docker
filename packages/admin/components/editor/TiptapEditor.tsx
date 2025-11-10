@@ -76,7 +76,7 @@ export default function TiptapEditor({
       // Only update if content is different to avoid infinite loops
       const currentContent = editor.getHTML();
       if (content !== currentContent) {
-        editor.commands.setContent(content, false);
+        editor.commands.setContent(content);
         setHtmlContent(content);
       }
     }
