@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { imageSizeTemplates, type ImageSizeTemplate, type NewImageSizeTemplate } from '../db/schema';
+import { imageSizeTemplates, imageRegenerationJobs, products, categories, brands, type ImageSizeTemplate, type NewImageSizeTemplate, type ImageRegenerationJob } from '../db/schema';
 import { eq, desc, ilike, or, and, count } from 'drizzle-orm';
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../utils/logger';
@@ -202,5 +202,42 @@ export class ImageSizeTemplateService {
       .orderBy(imageSizeTemplates.sortOrder);
 
     return templates;
+  }
+
+  /**
+   * Trigger image regeneration for all entities using this template
+   */
+  static async triggerRegeneration(templateId: string): Promise<ImageRegenerationJob> {
+    // Get template
+    const template = await this.getById(templateId);
+
+    // Count entities for this entity type
+    let totalCount = 0;
+    const entityTable = template.entityType === 'product' ? products :
+                        template.entityType === 'category' ? categories :
+                        template.entityType === 'brand' ? brands : null;
+
+    if (entityTable) {
+      const [result] = await db.select({ count: count() }).from(entityTable);
+      totalCount = Number(result?.count || 0);
+    }
+
+    // Create regeneration job
+    const [job] = await db
+      .insert(imageRegenerationJobs)
+      .values({
+        entityType: template.entityType,
+        sizeTemplate: template.name,
+        entityIds: null, // null means all entities
+        totalCount,
+        processedCount: 0,
+        failedCount: 0,
+        status: 'pending'
+      })
+      .returning();
+
+    logger.info(`Created regeneration job ${job.id} for template ${template.name} (${totalCount} entities)`);
+
+    return job;
   }
 }

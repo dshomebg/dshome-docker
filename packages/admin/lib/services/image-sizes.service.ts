@@ -92,4 +92,10 @@ export const imageSizesService = {
   deleteImageSize: async (id: string): Promise<void> => {
     await apiClient.delete(`/design/image-sizes/${id}`);
   },
+
+  // Trigger image regeneration for template
+  regenerateImages: async (id: string): Promise<{ data: any; message: string }> => {
+    const response = await apiClient.post(`/design/image-sizes/${id}/regenerate`);
+    return response.data;
+  },
 };

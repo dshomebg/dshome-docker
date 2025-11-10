@@ -6,6 +6,7 @@ import { config } from './config';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/error.middleware';
 import routes from './routes';
+import { ImageRegenerationWorkerService } from './services/image-regeneration-worker.service';
 
 const app: Express = express();
 
@@ -59,6 +60,10 @@ app.listen(PORT, () => {
   logger.info(`🚀 Server running on port ${PORT}`);
   logger.info(`📊 Environment: ${config.nodeEnv}`);
   logger.info(`🗄️  Database: ${config.databaseUrl.split('@')[1]}`);
+
+  // Start image regeneration worker
+  ImageRegenerationWorkerService.start(5000);
+  logger.info('🖼️  Image regeneration worker started');
 });
 
 export default app;

@@ -6,7 +6,8 @@ import {
   updateImageSizeTemplate,
   deleteImageSizeTemplate,
   toggleImageSizeTemplateActive,
-  getActiveTemplatesByType
+  getActiveTemplatesByType,
+  regenerateTemplateImages
 } from '../controllers/image-size-template.controller';
 
 const router: Router = Router();
@@ -28,6 +29,9 @@ router.put('/:id', updateImageSizeTemplate);
 
 // Toggle active status
 router.patch('/:id/toggle-active', toggleImageSizeTemplateActive);
+
+// Regenerate images for template
+router.post('/:id/regenerate', regenerateTemplateImages);
 
 // Delete template
 router.delete('/:id', deleteImageSizeTemplate);

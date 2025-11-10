@@ -166,3 +166,23 @@ export const getActiveTemplatesByType = async (req: Request, res: Response, next
     next(error);
   }
 };
+
+/**
+ * Regenerate images for specific template
+ */
+export const regenerateTemplateImages = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const job = await ImageSizeTemplateService.triggerRegeneration(id);
+
+    logger.info(`Image regeneration job created: ${job.id} for template: ${id}`);
+
+    res.status(202).json({
+      message: 'Regeneration job created successfully',
+      data: job
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { imageSizesService, ImageSizeTemplate } from "@/lib/services/image-sizes.service";
-import { Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { Pencil, Trash2, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
 
 export default function ImageSizesPage() {
   const router = useRouter();
   const [imageSizes, setImageSizes] = useState<ImageSizeTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterEntityType, setFilterEntityType] = useState<string>("all");
+  const [regeneratingIds, setRegeneratingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchImageSizes();
@@ -53,6 +54,27 @@ export default function ImageSizesPage() {
     } catch (error) {
       console.error("Error deleting image size:", error);
       alert("Неуспешно изтриване");
+    }
+  };
+
+  const handleRegenerate = async (id: string, name: string) => {
+    if (!confirm(`Регенерирай всички изображения с размер "${name}"?\n\nТова ще регенерира всички изображения за този размер. Процесът ще се изпълни във фона.`)) {
+      return;
+    }
+
+    try {
+      setRegeneratingIds(prev => new Set(prev).add(id));
+      const result = await imageSizesService.regenerateImages(id);
+      alert(`Започнат процес на регенерация!\n\n${result.message}`);
+    } catch (error) {
+      console.error("Error regenerating images:", error);
+      alert("Неуспешно стартиране на регенерация");
+    } finally {
+      setRegeneratingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -190,6 +212,18 @@ export default function ImageSizesPage() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm">
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleRegenerate(size.id, size.name)}
+                          disabled={regeneratingIds.has(size.id)}
+                          className={`rounded p-1.5 ${
+                            regeneratingIds.has(size.id)
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30"
+                          }`}
+                          title="Регенерирай изображения"
+                        >
+                          <RefreshCw className={`h-4 w-4 ${regeneratingIds.has(size.id) ? "animate-spin" : ""}`} />
+                        </button>
                         <button
                           onClick={() => router.push(`/design/image-sizes/${size.id}`)}
                           className="rounded p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
