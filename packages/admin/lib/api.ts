@@ -1,11 +1,12 @@
 import axios from "axios";
 
-// Use relative URL for production compatibility
-// In browser: /api → proxied by Nginx to backend
-// In development: can be overridden with NEXT_PUBLIC_API_URL
-const API_URL = typeof window !== "undefined"
-  ? "/api"  // Browser: use relative URL (works with Nginx proxy)
-  : process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";  // Server-side
+// Environment-aware API URL
+// Development: Direct connection to backend on port 4000
+// Production: Relative path - Nginx will proxy /api/* to backend
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? "/api" // Production: relative URL, Nginx handles proxy
+    : "http://localhost:4000/api"; // Development: direct connection
 
 export const apiClient = axios.create({
   baseURL: API_URL,

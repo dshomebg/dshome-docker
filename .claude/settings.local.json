@@ -51,7 +51,15 @@
       "Bash(npx tsc:*)",
       "Bash(docker exec:*)",
       "Bash(cmd /c \"move packages\\admin\\app\\modules packages\\admin\\app\\(dashboard)\\modules\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(ssh-keygen:*)",
+      "Bash(ssh-copy-id:*)",
+      "Bash(test-upload.txt)",
+      "Bash(xargs:*)",
+      "Bash(cmd /c taskkill /PID 36096 /F /T)",
+      "Bash(cmd /c taskkill /PID 44716 /F /T)",
+      "Bash(pnpm docker:dev:down:*)",
+      "Bash(pnpm docker:dev:up:*)"
     ],
     "deny": [],
     "ask": []
