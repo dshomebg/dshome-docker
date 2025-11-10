@@ -144,6 +144,10 @@ pnpm clean                # Изчисти всички build файлове
 
 За deployment инструкции вижте [DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 
+## Техническа Документация
+
+- [Image Deletion System Fixes](./docs/IMAGE-DELETION-FIXES.md) - Решени проблеми със системата за изтриване на снимки
+
 ## Лиценз
 
 Proprietary - © 2025 DSHome
