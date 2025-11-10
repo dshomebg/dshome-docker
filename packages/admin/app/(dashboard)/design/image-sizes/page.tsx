@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { imageSizesService, ImageSizeTemplate } from "@/lib/services/image-sizes.service";
 import { Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
-
 export default function ImageSizesPage() {
   const router = useRouter();
   const [imageSizes, setImageSizes] = useState<ImageSizeTemplate[]>([]);

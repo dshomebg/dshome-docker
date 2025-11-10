@@ -6,8 +6,6 @@ import Link from "next/link";
 import { imageSizesService, ImageSizeFormData, ImageSizeTemplate } from "@/lib/services/image-sizes.service";
 import { ArrowLeft, Save } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
-
 export default function EditImageSizePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
