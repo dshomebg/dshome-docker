@@ -567,6 +567,62 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
     setSelectedFeatures([...selectedFeatures, { featureValueId }]);
   };
 
+  const handleAutoSave = async (newImages: Array<{ url: string; position: number; isPrimary: boolean }>) => {
+    if (!product?.id) {
+      throw new Error("Cannot auto-save: Product ID not available");
+    }
+
+    // Build product update payload with current form state
+    // Use newImages parameter instead of state variable to avoid React timing issues
+    const data: ProductFormData = {
+      sku,
+      name,
+      slug,
+      shortDescription: shortDescription || undefined,
+      description: description || undefined,
+      productType,
+      brandId: brandId || undefined,
+      supplierId: supplierId || undefined,
+      categories: selectedCategories,
+      images: newImages, // Always pass the array, even if empty (empty = delete all)
+      features: selectedFeatures.length > 0 ? selectedFeatures : undefined,
+      combinations: productType === 'combination' && combinations.length > 0 ? combinations : undefined,
+      quantity: quantity ? parseInt(quantity) : undefined,
+      warehouseId: warehouses.length > 0 ? warehouses[0].id : undefined,
+      weight: weight ? parseFloat(weight) : undefined,
+      width: width ? parseFloat(width) : undefined,
+      height: height ? parseFloat(height) : undefined,
+      depth: depth ? parseFloat(depth) : undefined,
+      price: parseFloat(price),
+      compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+      priceWithoutVat: priceWithoutVat ? parseFloat(priceWithoutVat) : undefined,
+      supplierPrice: supplierPrice ? parseFloat(supplierPrice) : undefined,
+      discountType: hasDiscount && discountType ? discountType : undefined,
+      discountValue: hasDiscount && discountValue ? parseFloat(discountValue) : undefined,
+      discountStartDate: hasDiscount && discountStartDate ? discountStartDate : undefined,
+      discountEndDate: hasDiscount && discountEndDate ? discountEndDate : undefined,
+      promotionalPrice: hasDiscount && promotionalPrice ? parseFloat(promotionalPrice) : undefined,
+      measurementConfig: measurementEnabled && selectedRuleId ? {
+        measurementRuleId: selectedRuleId,
+        pricingUnit,
+        sellingUnit,
+        unitsPerPackage: unitsPerPackage || undefined,
+        minimumQuantity: minimumQuantity || undefined,
+        stepQuantity: stepQuantity || undefined,
+        displayBothUnits,
+        calculatorEnabled,
+      } : undefined,
+      status,
+      deliveryTimeId: deliveryTimeId || undefined,
+      metaTitle: seoData.metaTitle || undefined,
+      metaDescription: seoData.metaDescription || undefined,
+      canonicalUrl: seoData.canonicalUrl || undefined,
+      skipMetaGeneration: seoData.skipMetaGeneration,
+    };
+
+    await productsService.updateProduct(product.id, data);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -605,7 +661,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
         brandId: brandId || undefined,
         supplierId: supplierId || undefined,
         categories: selectedCategories,
-        images: images.length > 0 ? images : undefined,
+        images: mode === "edit" ? images : (images.length > 0 ? images : undefined), // In edit mode, always send array to allow deletion
         features: selectedFeatures.length > 0 ? selectedFeatures : undefined,
         combinations: productType === 'combination' && combinations.length > 0 ? combinations : undefined,
         quantity: quantity ? parseInt(quantity) : undefined,
@@ -686,11 +742,24 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Снимки на продукта
                 </label>
-                <ProductImagesUpload
-                  images={images}
-                  productName={name}
-                  onChange={setImages}
-                />
+                {mode === "create" && !product?.id ? (
+                  <div className="rounded-lg border-2 border-dashed border-yellow-300 bg-yellow-50 p-8 text-center dark:border-yellow-700 dark:bg-yellow-900/20">
+                    <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                      💡 Моля, първо запазете продукта преди да качвате снимки.
+                    </p>
+                    <p className="mt-2 text-xs text-yellow-600 dark:text-yellow-500">
+                      След записване ще можете да качвате и управлявате снимките на продукта.
+                    </p>
+                  </div>
+                ) : (
+                  <ProductImagesUpload
+                    images={images}
+                    productName={name}
+                    productId={product?.id}
+                    onChange={setImages}
+                    onAutoSave={mode === "edit" ? handleAutoSave : undefined}
+                  />
+                )}
               </div>
 
               {/* Short Description - WYSIWYG */}
