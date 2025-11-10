@@ -537,6 +537,14 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       if (!product && deliveryRes.data.length > 0) {
         setDeliveryTimeId(deliveryRes.data[0].id);
       }
+
+      // Set default supplier (the one with isDefault: true) if creating new product
+      if (!product && suppliersRes.data.length > 0) {
+        const defaultSupplier = suppliersRes.data.find((s: any) => s.isDefault);
+        if (defaultSupplier) {
+          setSupplierId(defaultSupplier.id);
+        }
+      }
     } catch (error) {
       console.error("Error fetching reference data:", error);
     }
@@ -1430,6 +1438,33 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                 </select>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Сроковете се управляват от Каталог → Настройки
+                </p>
+              </div>
+            </div>
+
+            {/* Supplier Selection */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+                Доставчик
+              </h3>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Избор на доставчик
+                </label>
+                <select
+                  value={supplierId}
+                  onChange={(e) => setSupplierId(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                >
+                  <option value="">-- Без доставчик --</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name} {supplier.isDefault && "(по подразбиране)"}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Доставчикът от който се доставя продукта
                 </p>
               </div>
             </div>
