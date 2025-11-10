@@ -275,9 +275,17 @@ export class ImageProcessingService {
 
         sizes[template.name] = result;
 
-        // Get generated file metadata
+        // Get generated file metadata (with fallback if metadata read fails)
         const generatedStats = fs.statSync(result.path);
-        const generatedMetadata = await sharp(result.path).metadata();
+        let generatedWidth: number | null = null;
+        let generatedHeight: number | null = null;
+        try {
+          const metadata = await sharp(result.path).metadata();
+          generatedWidth = metadata.width || null;
+          generatedHeight = metadata.height || null;
+        } catch (metadataError) {
+          logger.warn(`Could not read metadata for ${result.path}, using null dimensions`);
+        }
 
         // Record in database with correct schema fields
         await db.insert(imageFiles).values({
@@ -296,8 +304,8 @@ export class ImageProcessingService {
           // Generated file info
           generatedPath: result.path,
           generatedSize: generatedStats.size,
-          generatedWidth: generatedMetadata.width || null,
-          generatedHeight: generatedMetadata.height || null
+          generatedWidth: generatedWidth,
+          generatedHeight: generatedHeight
         });
 
       } catch (error) {
