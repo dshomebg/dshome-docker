@@ -278,20 +278,11 @@ export const getCategoryTree = async (req: Request, res: Response, next: NextFun
 
     const allCategories = await query.orderBy(categories.position, categories.name);
 
-    // Get product counts for each category
-    const categoriesWithCounts = await Promise.all(
-      allCategories.map(async (category) => {
-        const [result] = await db
-          .select({ count: count() })
-          .from(productCategories)
-          .where(eq(productCategories.categoryId, category.id));
-
-        return {
-          ...category,
-          productCount: result?.count || 0,
-        };
-      })
-    );
+    // TODO: Add product counts when productCategories table is ready
+    const categoriesWithCounts = allCategories.map((category) => ({
+      ...category,
+      productCount: 0,
+    }));
 
     const tree = buildCategoryTree(categoriesWithCounts);
 
