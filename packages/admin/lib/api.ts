@@ -2,10 +2,10 @@ import axios from "axios";
 
 // Environment-aware API URL
 // Development: Direct connection to backend on port 4000
-// Production: Relative path - Nginx will proxy /api/* to backend
+// Production: Relative path - Nginx will proxy /admin/api/* to backend
 const API_URL =
   process.env.NODE_ENV === "production"
-    ? "/api" // Production: relative URL, Nginx handles proxy
+    ? "/admin/api" // Production: relative URL with basePath, Nginx handles proxy
     : "http://localhost:4000/api"; // Development: direct connection
 
 export const apiClient = axios.create({
