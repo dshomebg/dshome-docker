@@ -1,0 +1,25 @@
+-- ============================================================================
+-- BASELINE MIGRATION - Initial Schema Snapshot
+-- ============================================================================
+-- This is a baseline migration that marks the current database state.
+-- All tables, columns, indexes, and constraints already exist in the database.
+-- This migration consolidates 28 previous migrations into a single baseline.
+--
+-- Created: 2025-11-10
+-- Purpose: Clean migration history and establish a new baseline
+--
+-- Tables included:
+-- - users, brands, suppliers
+-- - categories, products, product_images, product_prices, product_inventory
+-- - product_combinations, product_combination_attributes
+-- - product_categories, product_features
+-- - attributes, attribute_values, features, feature_values
+-- - warehouses, orders, order_items, shipping_addresses
+-- - seo_settings, general_settings, measurement_rules, import_templates
+--
+-- This migration does not perform any DDL operations.
+-- The database schema is already in the correct state.
+-- ============================================================================
+
+-- No operations required - baseline marker only
+SELECT 'Baseline migration - schema already up to date' AS status;
