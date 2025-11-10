@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { warehouses } from '../db/schema';
-import { eq, desc, ilike, or } from 'drizzle-orm';
+import { eq, desc, ilike, or, count } from 'drizzle-orm';
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../utils/logger';
 
@@ -33,13 +33,21 @@ export const getWarehouses = async (req: Request, res: Response, next: NextFunct
       query = query.where(conditions[0]) as any;
     }
 
-    const [warehousesList, [{ count }]] = await Promise.all([
+    // Build count query with same filters
+    let countQuery = db.select({ count: count() }).from(warehouses);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(conditions[0]) as any;
+    }
+
+    const [warehousesList, countResult] = await Promise.all([
       query
         .orderBy(desc(warehouses.createdAt))
         .limit(limitNum)
         .offset(offset),
-      db.select({ count: warehouses.id }).from(warehouses) as any
+      countQuery
     ]);
+
+    const totalCount = Number(countResult[0]?.count || 0);
 
     logger.info(`Fetched ${warehousesList.length} warehouses`);
 
@@ -48,8 +56,8 @@ export const getWarehouses = async (req: Request, res: Response, next: NextFunct
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total: parseInt(count),
-        totalPages: Math.ceil(parseInt(count) / limitNum)
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limitNum)
       }
     });
   } catch (error) {
