@@ -6,14 +6,18 @@
 
 ❌ **НИКОГА не измисляй URLs**
 - api.dshome.dev НЕ съществува
-- Единствен валиден URL: `http://157.90.129.12:3000/api/`
-- Production backend е на порт **3000**, НЕ 4000
+- Production backend е на порт **4000** (PM2)
+- Production admin е на порт **3001** (PM2)
 - Development backend е на порт **4000**
+- Development admin е на порт **3000**
 
 ✅ **Винаги използвай:**
 ```
-Production:  http://157.90.129.12:3000/api/
-Development: http://localhost:4000/api/
+Production Backend:  http://localhost:4000/api/ (via PM2)
+Production Admin:    http://localhost:3001/admin (via PM2)
+Public URLs:         https://dshome.dev/api/ (Nginx proxy)
+                     https://dshome.dev/admin/ (Nginx proxy)
+Development:         http://localhost:4000/api/
 ```
 
 ## Database
@@ -79,29 +83,85 @@ cat docker-compose.prod.yml
 6. Deploy
 7. Verify deployed version
 
+## PM2 Configuration (Production)
+
+❌ **НИКОГА не използвай pnpm --filter в PM2**
+```javascript
+// ecosystem.config.js - ГРЕШНО ❌
+{
+  script: 'pnpm',
+  args: '--filter @dshome/admin start',  // Bash не може да parse-не
+  cwd: '/opt/dshome',
+}
+```
+
+✅ **Винаги използвай npm от package directory:**
+```javascript
+// ecosystem.config.js - ПРАВИЛНО ✅
+{
+  name: 'dshome-admin',
+  script: 'npm',
+  args: 'start',
+  cwd: '/opt/dshome/packages/admin',  // Run from package dir
+  env: {
+    NODE_ENV: 'production',
+  }
+}
+```
+
+**Защо:**
+- PM2 изпълнява script като bash команда
+- Bash не разбира pnpm workspace флагове като `--filter`
+- Process изглежда "online" но постоянно crash-ва
+- Води до 404 errors на всички нови pages
+
 ## Production Deployment
 
 ❌ **НИКОГА не deploy без build**
 ```bash
-git pull && docker compose up -d  # ГРЕШНО
+git pull && pm2 restart all  # ГРЕШНО - старият build
 ```
 
 ✅ **Винаги с rebuild:**
 ```bash
-git pull && docker compose -f docker-compose.prod.yml build && docker compose -f docker-compose.prod.yml up -d
+# Backend
+cd /opt/dshome/packages/backend
+git pull
+pnpm build
+pm2 restart dshome-backend
+
+# Admin
+cd /opt/dshome/packages/admin
+git pull
+pnpm install
+pnpm build
+pm2 restart dshome-admin
 ```
 
 ## Testing Production
 
 ❌ **НИКОГА не приемай че работи без да тестваш**
 - Exit code 0 != успешно deploy
-- Container running != работещ API
+- PM2 "online" != работещ API
+- Build succeeded != deployed version
 
 ✅ **Винаги тествай:**
 ```bash
-curl http://157.90.129.12:3000/api/health
-curl http://157.90.129.12:3000/api/warehouses
-docker compose -f docker-compose.prod.yml logs backend
+# Check PM2 status
+pm2 status
+pm2 logs --lines 20 --nostream
+
+# Test backend
+curl http://localhost:4000/api/health
+curl https://dshome.dev/api/health
+
+# Test admin
+curl http://localhost:3001/admin
+curl https://dshome.dev/admin
+
+# Check restart count
+pm2 status | grep -E 'dshome-(backend|admin)'
+# If ↺ count is high = crash loop
 ```
 
 ## Controller Patterns
@@ -200,13 +260,20 @@ cat packages/backend/src/controllers/thing.controller.ts
 
 **Валидни URLs:**
 - https://dshome.dev/ (frontend)
-- https://dshome.dev/admin/ (admin)
-- http://157.90.129.12:3000/api/ (backend direct)
+- https://dshome.dev/admin/ (admin via Nginx)
+- https://dshome.dev/api/ (backend via Nginx)
+- http://localhost:4000/api/ (backend direct, on server)
+- http://localhost:3001/admin (admin direct, on server)
 
 **Невалидни URLs (НЕ СЪЩЕСТВУВАТ):**
 - ❌ api.dshome.dev
 - ❌ backend.dshome.dev
-- ❌ http://157.90.129.12:4000 (това е dev port)
+- ❌ http://157.90.129.12:3000 (не се използва)
+
+**PM2 Process Management:**
+- Backend runs on port **4000** via PM2
+- Admin runs on port **3001** via PM2
+- Nginx proxies external traffic to these ports
 
 ---
 

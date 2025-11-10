@@ -198,6 +198,66 @@ psql -U admin_dsdock -d admin_dsdock
 ALTER TABLE table_name ALTER COLUMN field_name DROP NOT NULL;
 ```
 
+## PM2 Configuration Issues
+
+### Problem: PM2 process constantly restarting, pages return 404
+```
+[PM2] Process restarted 15 times
+/usr/bin/bash: --filter: invalid option
+```
+
+**Причина:**
+- ecosystem.config.js използва `pnpm --filter` което bash не може да parse-не като команда
+- PM2 изпълнява script като bash команда, не като npm/pnpm команда
+- Process-ът изглежда "online" в PM2 но всъщност постоянно crash-ва и restart-ва
+
+**Симптоми:**
+- Всички НОВИ pages връщат 404
+- Стари pages работят (от предишен build)
+- PM2 status показва "online" но високо ↺ restart count
+- Port е зает но приложението не работи
+
+**Решение:**
+```javascript
+// ecosystem.config.js - ГРЕШНО ❌
+{
+  name: 'dshome-admin',
+  script: 'pnpm',
+  args: '--filter @dshome/admin start',  // Bash не може да parse-не --filter
+  cwd: '/opt/dshome',
+}
+
+// ecosystem.config.js - ПРАВИЛНО ✅
+{
+  name: 'dshome-admin',
+  script: 'npm',
+  args: 'start',
+  cwd: '/opt/dshome/packages/admin',  // Run from package directory
+  env: {
+    NODE_ENV: 'production',
+  }
+}
+```
+
+**Стъпки за fix:**
+```bash
+# 1. Edit ecosystem.config.js
+nano /opt/dshome/ecosystem.config.js
+
+# 2. Kill old processes blocking the port
+lsof -ti:3001 | xargs kill -9
+lsof -ti:4000 | xargs kill -9
+
+# 3. Restart PM2 with new config
+pm2 delete all
+pm2 start ecosystem.config.js
+pm2 save
+
+# 4. Verify
+pm2 status
+pm2 logs --lines 50
+```
+
 ## Port Conflicts
 
 ### Problem: Port already in use
@@ -212,6 +272,8 @@ taskkill /PID <PID> /F
 
 # Linux (production)
 lsof -ti:3000 | xargs kill -9
+lsof -ti:3001 | xargs kill -9
+lsof -ti:4000 | xargs kill -9
 
 # Or restart docker
 docker compose -f docker-compose.prod.yml restart backend
@@ -282,22 +344,39 @@ pnpm build
 **When something breaks, run these:**
 
 ```bash
-# 1. Check all services
+# 1. Check PM2 processes (PRODUCTION)
+pm2 status
+pm2 logs --lines 20 --nostream
+# Check for:
+# - High restart count (↺) - indicates crash loop
+# - Errors in logs like "bash: --filter: invalid option"
+# - Process "online" but port conflicts
+
+# 2. Check ports in use
+lsof -ti:3001   # Admin port
+lsof -ti:4000   # Backend port
+netstat -tlnp | grep -E ':(3001|4000)'
+
+# 3. Check all services (DOCKER)
 docker compose -f docker-compose.prod.yml ps
 
-# 2. Check logs
+# 4. Check logs (DOCKER)
 docker compose -f docker-compose.prod.yml logs backend -f
 
-# 3. Test API
-curl http://157.90.129.12:3000/api/health
+# 5. Test API endpoints
+curl http://localhost:4000/api/health
+curl http://localhost:3001/admin
+curl https://dshome.dev/api/health
 
-# 4. Check database
+# 6. Check database connection
 psql -U admin_dsdock -d admin_dsdock -c "SELECT version();"
 
-# 5. Check nginx
+# 7. Check nginx
 systemctl status nginx
+nginx -t
+tail -f /var/log/nginx/error.log
 ```
 
 ---
 
-**Винаги четеш logs преди да предполагаш проблема.**
+**Винаги четеш logs преди да предполагаш проблема. PM2 logs са критични за production issues.**
