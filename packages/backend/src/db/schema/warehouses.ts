@@ -6,7 +6,7 @@ export const warehouses = pgTable('warehouses', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
   address: varchar('address', { length: 500 }).notNull(),
-  postalCode: varchar('postal_code', { length: 20 }).notNull(),
+  postalCode: varchar('postal_code', { length: 20 }),
   status: warehouseStatusEnum('status').notNull().default('active'),
   isDefault: boolean('is_default').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),

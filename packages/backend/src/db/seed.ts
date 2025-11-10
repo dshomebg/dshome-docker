@@ -22,8 +22,7 @@ async function seed() {
     // Create default warehouse
     await db.insert(warehouses).values({
       name: 'Главен склад',
-      address: 'ул. Примерна 1',
-      postalCode: '1000',
+      address: 'ул. Примерна 1, София',
       status: 'active',
       workingHours: 'Пон-Пет: 9:00-18:00',
       isPhysicalStore: true,
