@@ -60,7 +60,15 @@
       "Bash(cmd /c taskkill /PID 44716 /F /T)",
       "Bash(pnpm docker:dev:down:*)",
       "Bash(pnpm docker:dev:up:*)",
-      "Bash(sha256sum:*)"
+      "Bash(sha256sum:*)",
+      "Bash(git remote add:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && pnpm --filter @dshome/shared build && pnpm --filter @dshome/backend build && pnpm --filter @dshome/admin build && pm2 restart dshome-backend dshome-admin && pm2 status\")",
+      "Bash(if [ -f \"nul\" ])",
+      "Bash(then rm -f nul)",
+      "Bash(fi)",
+      "Bash(sshpass -p '1Borabora@#' ssh -o StrictHostKeyChecking=no root@157.90.129.12 \"cd /opt/dshome && git pull && cd packages/admin && pnpm install && NODE_ENV=production pnpm build && pm2 restart dshome-admin && pm2 status\")"
     ],
     "deny": [],
     "ask": []
