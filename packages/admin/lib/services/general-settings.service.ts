@@ -3,6 +3,8 @@ import { apiClient } from '../api';
 export interface GeneralSettings {
   id: string;
   baseUrl: string;
+  maxImageUploadSizeMb: number;
+  allowedImageFormats: string[];
   createdAt: string;
   updatedAt: string;
 }

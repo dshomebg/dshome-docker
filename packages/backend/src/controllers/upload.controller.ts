@@ -4,7 +4,7 @@ import fs from 'fs';
 import { logger } from '../utils/logger';
 import { ImageProcessingService } from '../services/image-processing.service';
 import { db } from '../db';
-import { products, categories, brands } from '../db/schema';
+import { products, categories, brands, generalSettings } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -18,6 +18,57 @@ export const uploadImage = async (req: Request, res: Response, next: NextFunctio
         success: false,
         message: 'No file uploaded'
       });
+    }
+
+    // Validate against database settings
+    const [settings] = await db.select().from(generalSettings).limit(1);
+
+    if (settings) {
+      // Check file size
+      const maxSizeBytes = settings.maxImageUploadSizeMb * 1024 * 1024;
+      if (req.file.size > maxSizeBytes) {
+        // Clean up uploaded file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+
+        return res.status(400).json({
+          success: false,
+          message: `File size exceeds maximum allowed size of ${settings.maxImageUploadSizeMb}MB`
+        });
+      }
+
+      // Check file format
+      const allowedFormats = settings.allowedImageFormats as string[];
+      const fileExtension = path.extname(req.file.originalname).toLowerCase().replace('.', '');
+      const mimeTypeMap: Record<string, string[]> = {
+        'jpeg': ['image/jpeg', 'image/jpg'],
+        'jpg': ['image/jpeg', 'image/jpg'],
+        'png': ['image/png'],
+        'webp': ['image/webp'],
+        'gif': ['image/gif']
+      };
+
+      let isFormatAllowed = false;
+      for (const format of allowedFormats) {
+        const allowedMimes = mimeTypeMap[format.toLowerCase()] || [];
+        if (allowedMimes.includes(req.file.mimetype) || fileExtension === format.toLowerCase()) {
+          isFormatAllowed = true;
+          break;
+        }
+      }
+
+      if (!isFormatAllowed) {
+        // Clean up uploaded file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+
+        return res.status(400).json({
+          success: false,
+          message: `File format not allowed. Allowed formats: ${allowedFormats.join(', ').toUpperCase()}`
+        });
+      }
     }
 
     const { entityType, entityId } = req.body;
