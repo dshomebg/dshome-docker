@@ -60,7 +60,19 @@ export default function ProductImagesUpload({
         isPrimary: images.length === 0 && index === 0, // First image is primary if no images exist
       }));
 
-      onChange([...images, ...newImages]);
+      const updatedImages = [...images, ...newImages];
+      onChange(updatedImages);
+
+      // Auto-save if callback provided
+      if (onAutoSave) {
+        try {
+          await onAutoSave(updatedImages);
+          // Success message handled by parent
+        } catch (error) {
+          console.error('Error auto-saving after upload:', error);
+          alert('Грешка при записване на промените');
+        }
+      }
     } catch (err: any) {
       console.error("Error uploading images:", err);
       setError(err.message || "Failed to upload images");
@@ -168,6 +180,17 @@ export default function ProductImagesUpload({
       onChange(newImages);
       setEditingImage(null);
       setEditorImage("");
+
+      // Auto-save if callback provided
+      if (onAutoSave) {
+        try {
+          await onAutoSave(newImages);
+          // Success message handled by parent
+        } catch (error) {
+          console.error('Error auto-saving after edit:', error);
+          alert('Грешка при записване на промените');
+        }
+      }
     } catch (err: any) {
       console.error("Error uploading edited image:", err);
       setError(err.message || "Failed to upload edited image");
