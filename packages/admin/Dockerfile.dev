@@ -1,0 +1,33 @@
+# Development Dockerfile for Admin Panel
+FROM node:20-alpine
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+
+# Set working directory
+WORKDIR /app
+
+# Copy root package files for workspace setup
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+
+# Copy shared package
+COPY packages/shared ./packages/shared
+
+# Copy admin package
+COPY packages/admin ./packages/admin
+
+# Install all dependencies
+RUN pnpm install --frozen-lockfile
+
+# Build shared package first
+WORKDIR /app/packages/shared
+RUN pnpm build
+
+# Switch to admin directory
+WORKDIR /app/packages/admin
+
+# Expose port
+EXPOSE 3001
+
+# Start in development mode with hot reload
+CMD ["pnpm", "dev"]

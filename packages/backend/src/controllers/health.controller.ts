@@ -13,7 +13,9 @@ export const healthCheck = async (req: Request, res: Response) => {
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        database: 'connected'
+        database: 'connected',
+        dockerMode: 'Docker-First Development',
+        hotReload: 'WORKING! 🚀'
       }
     });
   } catch (error) {

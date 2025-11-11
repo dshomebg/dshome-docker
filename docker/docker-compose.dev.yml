@@ -14,7 +14,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../scripts/seed-data.sql:/docker-entrypoint-initdb.d/seed.sql
     networks:
       - dshome-network
     healthcheck:
@@ -55,11 +54,81 @@ services:
       - meilisearch_data:/meili_data
     networks:
       - dshome-network
+
+  # Backend API (Node.js + Express)
+  backend:
+    build:
+      context: ..
+      dockerfile: packages/backend/Dockerfile.dev
+    container_name: dshome-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://dev:dev@postgres:5432/dshome_dev
+      REDIS_URL: redis://redis:6379
+      MEILISEARCH_URL: http://meilisearch:7700
+      MEILISEARCH_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-dev_master_key_change_in_production}
+      API_PORT: 4000
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_change_in_production}
+      JWT_ACCESS_EXPIRATION: 15m
+      JWT_REFRESH_EXPIRATION: 7d
+      LOG_LEVEL: debug
+    ports:
+      - "4000:4000"
+    volumes:
+      # Mount source code for hot reload
+      - ../packages/backend/src:/app/packages/backend/src
+      - ../packages/shared/src:/app/packages/shared/src
+      # Mount uploads directory
+      - ../packages/backend/uploads:/app/packages/backend/uploads
+    networks:
+      - dshome-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Admin Panel (Next.js)
+  admin:
+    build:
+      context: ..
+      dockerfile: packages/admin/Dockerfile.dev
+    container_name: dshome-admin-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      # Mount source code for hot reload
+      - ../packages/admin/src:/app/packages/admin/src
+      - ../packages/admin/app:/app/packages/admin/app
+      - ../packages/admin/public:/app/packages/admin/public
+      - ../packages/shared/src:/app/packages/shared/src
+      # Exclude node_modules and .next from volume
+      - /app/packages/admin/node_modules
+      - /app/packages/admin/.next
+    networks:
+      - dshome-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:
