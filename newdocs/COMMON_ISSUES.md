@@ -281,22 +281,37 @@ docker compose -f docker-compose.prod.yml restart backend
 
 ## Admin Panel API Errors
 
-### Problem: Admin calls wrong API URL
+### Problem: Admin calls wrong API URL or images load from localhost
 
-**Причина:** `packages/admin/lib/api.ts` config.
+**Причина:** Missing `.env.production` file OR incorrect `packages/admin/lib/api.ts` config.
+
+**Симптоми:**
+- Images load from `http://localhost:4000/uploads/...` instead of production URL
+- Mixed Content errors in browser console
+- API calls go to localhost instead of production
 
 **Решение:**
-```typescript
-// packages/admin/lib/api.ts
-const API_URL =
-  process.env.NODE_ENV === "production"
-    ? "/admin/api"              // Production: nginx proxy
-    : "http://localhost:4000/api";  // Dev: direct
+```bash
+# 1. Create .env.production file (REQUIRED for production builds)
+cat > /opt/dshome/packages/admin/.env.production << 'EOF'
+NEXT_PUBLIC_API_URL=https://www.dshome.dev/api
+NODE_ENV=production
+EOF
 
-// Verify NODE_ENV
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('API_URL:', API_URL);
+# 2. Rebuild admin with environment file
+cd /opt/dshome/packages/admin
+rm -rf .next
+NODE_ENV=production pnpm build
+pm2 restart dshome-admin
+
+# 3. Verify build used correct env
+# Look for "- Environments: .env.production" in build output
 ```
+
+**Важно:**
+- Next.js "захардкодва" environment variables по време на build
+- PM2 env vars НЕ работят за NEXT_PUBLIC_* променливи
+- Трябва да има `.env.production` файл ПРЕДИ build
 
 ## Image Upload Issues
 
