@@ -74,7 +74,21 @@ docker ps
 
 ---
 
-## Стъпка 5: Setup на базата данни
+## Стъпка 5: Build на проекта
+
+```bash
+# Build на shared package (съдържа споделени типове)
+pnpm --filter @dshome/shared build
+
+# Build на backend (необходимо за migrations)
+pnpm --filter @dshome/backend build
+```
+
+Това компилира TypeScript кода в JavaScript и го слага в `dist/` директорията.
+
+---
+
+## Стъпка 6: Setup на базата данни
 
 ```bash
 # Прилагане на миграции
@@ -90,7 +104,7 @@ pnpm db:seed
 
 ---
 
-## Стъпка 6: Стартирай development сървърите
+## Стъпка 7: Стартирай development сървърите
 
 **Вариант 1 - Всичко наведнъж (препоръчително):**
 ```bash
@@ -108,7 +122,7 @@ pnpm --filter @dshome/admin dev
 
 ---
 
-## Стъпка 7: Отвори приложенията
+## Стъпка 8: Отвори приложенията
 
 **Backend API:**
 - URL: http://localhost:4000/api/health
@@ -212,10 +226,11 @@ git push
 
 | Действие | Команда |
 |----------|---------|
-| Започвам работа | `git pull` → `pnpm docker:dev:up` → `pnpm dev` |
+| Започвам работа | `git pull` → `pnpm install` → `pnpm docker:dev:up` → `pnpm dev` |
 | Завършвам работа | `git add .` → `git commit -m "message"` → `git push` |
 | Виж промени | `git status` |
 | Отмени промени | `git restore <file>` |
+| Build shared + backend | `pnpm --filter @dshome/shared build && pnpm --filter @dshome/backend build` |
 | Стартирай Docker | `pnpm docker:dev:up` |
 | Спри Docker | `pnpm docker:dev:down` |
 | Database migrations | `pnpm db:migrate` |
@@ -277,10 +292,22 @@ pnpm docker:dev:up
 # Провери дали базата е достъпна
 docker ps | grep postgres
 
-# Стартирай migrations
-pnpm db:migrate
+# Ако виждаш "Cannot find module dist/db/migrate.js"
+# трябва да направиш build първо:
+pnpm --filter @dshome/shared build
+pnpm --filter @dshome/backend build
 
-# Ако има грешка, провери .env файла
+# След това стартирай migrations
+pnpm db:migrate
+```
+
+### 6. "Cannot find module dist/..." грешка
+
+Това означава че backend не е компилиран (build). Направи:
+
+```bash
+pnpm --filter @dshome/shared build
+pnpm --filter @dshome/backend build
 ```
 
 ---
