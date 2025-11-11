@@ -1,6 +1,59 @@
 version: '3.9'
 
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:18-alpine
+    container_name: dshome-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - dshome-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: dshome-redis-prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - dshome-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Meilisearch
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: dshome-meilisearch-prod
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY}
+      MEILI_ENV: production
+    volumes:
+      - meilisearch-data:/meili_data
+    networks:
+      - dshome-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   # Backend API
   backend:
     image: dshome-backend-prod:latest
@@ -12,22 +65,35 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Database connection (uses EXISTING PostgreSQL on host)
-      DATABASE_URL: ${DATABASE_URL}
-      # Other env vars
       NODE_ENV: production
       API_PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      MEILISEARCH_URL: ${MEILISEARCH_URL}
+      MEILISEARCH_MASTER_KEY: ${MEILISEARCH_MASTER_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
     volumes:
-      # IMPORTANT: Mount uploads directory to preserve user files
-      - ./packages/backend/uploads:/app/packages/backend/uploads
-      # Mount .env file
+      # Named volume for user uploads (persistent across deployments)
+      - uploads-data:/app/packages/backend/uploads
+      # Mount .env file (read-only)
       - ./.env:/app/.env:ro
     networks:
       - dshome-network
-    # Connect to host PostgreSQL (not in Docker)
-    # Use custom network gateway instead of default bridge gateway
-    extra_hosts:
-      - "host.docker.internal:172.18.0.1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
   # Admin Panel
   admin:
@@ -44,17 +110,37 @@ services:
       PORT: 3001
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     volumes:
-      # Mount .env file
+      # Mount .env file (read-only)
       - ./.env:/app/.env:ro
     networks:
       - dshome-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:3001"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
 networks:
   dshome-network:
     driver: bridge
 
-# IMPORTANT: No database volumes here!
-# We use the existing PostgreSQL installation on the host machine.
-# The uploads volume preserves all user-uploaded files.
+volumes:
+  # PostgreSQL data - CRITICAL: Contains all database data
+  postgres-data:
+    name: dshome-postgres-data
+
+  # Redis data - Persistent cache (optional, can be ephemeral)
+  redis-data:
+    name: dshome-redis-data
+
+  # Meilisearch data - Search index persistence
+  meilisearch-data:
+    name: dshome-meilisearch-data
+
+  # User uploads - CRITICAL: Contains all uploaded images
+  uploads-data:
+    name: dshome-uploads-data
