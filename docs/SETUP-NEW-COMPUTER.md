@@ -74,29 +74,17 @@ docker ps
 
 ---
 
-## Стъпка 5: Build на проекта
+## Стъпка 5: Setup на базата данни
 
 ```bash
-# Build на shared package (съдържа споделени типове)
-pnpm --filter @dshome/shared build
-
-# Build на backend (необходимо за migrations)
-pnpm --filter @dshome/backend build
-```
-
-Това компилира TypeScript кода в JavaScript и го слага в `dist/` директорията.
-
----
-
-## Стъпка 6: Setup на базата данни
-
-```bash
-# Прилагане на миграции
-pnpm db:migrate
+# Синхронизирай schema с базата данни (създава всички таблици)
+pnpm db:push
 
 # Зареждане на примерни данни (admin потребител и др.)
 pnpm db:seed
 ```
+
+**Забележка:** `db:push` автоматично синхронизира Drizzle schema с базата данни. Това е най-лесният начин за development.
 
 **Seed данни:**
 - Admin потребител: `admin@dshome.dev` / `admin123`
@@ -104,7 +92,7 @@ pnpm db:seed
 
 ---
 
-## Стъпка 7: Стартирай development сървърите
+## Стъпка 6: Стартирай development сървърите
 
 **Вариант 1 - Всичко наведнъж (препоръчително):**
 ```bash
@@ -122,7 +110,7 @@ pnpm --filter @dshome/admin dev
 
 ---
 
-## Стъпка 8: Отвори приложенията
+## Стъпка 7: Отвори приложенията
 
 **Backend API:**
 - URL: http://localhost:4000/api/health
@@ -230,10 +218,9 @@ git push
 | Завършвам работа | `git add .` → `git commit -m "message"` → `git push` |
 | Виж промени | `git status` |
 | Отмени промени | `git restore <file>` |
-| Build shared + backend | `pnpm --filter @dshome/shared build && pnpm --filter @dshome/backend build` |
 | Стартирай Docker | `pnpm docker:dev:up` |
 | Спри Docker | `pnpm docker:dev:down` |
-| Database migrations | `pnpm db:migrate` |
+| Синхронизирай DB schema | `pnpm db:push` |
 | Database GUI | `pnpm db:studio` |
 | Seed database | `pnpm db:seed` |
 
@@ -286,28 +273,19 @@ docker ps
 pnpm docker:dev:up
 ```
 
-### 5. Database migrations не работят
+### 5. Database schema не е синхронизирана
+
+Ако виждаш грешки като "relation does not exist":
 
 ```bash
 # Провери дали базата е достъпна
 docker ps | grep postgres
 
-# Ако виждаш "Cannot find module dist/db/migrate.js"
-# трябва да направиш build първо:
-pnpm --filter @dshome/shared build
-pnpm --filter @dshome/backend build
+# Синхронизирай schema с базата данни
+pnpm db:push
 
-# След това стартирай migrations
-pnpm db:migrate
-```
-
-### 6. "Cannot find module dist/..." грешка
-
-Това означава че backend не е компилиран (build). Направи:
-
-```bash
-pnpm --filter @dshome/shared build
-pnpm --filter @dshome/backend build
+# След това seed данни
+pnpm db:seed
 ```
 
 ---
