@@ -198,7 +198,7 @@ export class ImageProcessingService {
     originalFilename: string,
     timestamp?: string
   ): Promise<{ path: string; url: string; filename: string }> {
-    const ext = path.extname(originalFilename);
+    const ext = path.extname(originalFilename).substring(1); // Remove leading dot
     const filename = this.generateFilename(entityName, entityId, 'originals', ext, timestamp);
     const targetPath = this.getImagePath(entityType, 'originals', entityId, filename);
 
