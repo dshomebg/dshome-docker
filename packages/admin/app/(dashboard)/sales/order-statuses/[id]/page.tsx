@@ -1,29 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { orderStatusesService, OrderStatus } from "@/lib/services/order-statuses.service";
 import OrderStatusForm from "../OrderStatusForm";
 
-export default function EditOrderStatusPage({ params }: { params: { id: string } }) {
+export default function EditOrderStatusPage() {
+  const params = useParams();
+  const statusId = params.id as string;
   const [status, setStatus] = useState<OrderStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStatus();
-  }, [params.id]);
+    const fetchStatus = async () => {
+      try {
+        const response = await orderStatusesService.getOrderStatus(statusId);
+        setStatus(response.data);
+      } catch (error) {
+        console.error("Error fetching order status:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchStatus = async () => {
-    try {
-      const response = await orderStatusesService.getOrderStatus(params.id);
-      setStatus(response.data);
-    } catch (error) {
-      console.error("Error fetching order status:", error);
-    } finally {
-      setLoading(false);
+    if (statusId) {
+      fetchStatus();
     }
-  };
+  }, [statusId]);
 
   if (loading) {
     return (
