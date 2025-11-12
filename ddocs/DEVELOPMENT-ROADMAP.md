@@ -24,6 +24,10 @@
 - ✅ **General Settings** - Общи настройки
 - ✅ **Faceted Navigation** - Филтри за каталог
 - ✅ **Rich Snippets** - Structured data settings
+- ✅ **Customers** - Клиенти (основна информация, без адреси)
+- ✅ **Couriers** - Куриери с pricing ranges и pallet delivery
+- ✅ **Email Templates** - Шаблони за имейли с WYSIWYG editor и променливи
+- ✅ **Order Statuses** - Статуси на поръчки с цветове и email notifications
 
 ### 🔧 Частично Имплементирани
 
@@ -41,58 +45,7 @@
 
 ### ❌ Липсващи Модули
 
-#### 1. Customers (Клиенти)
-**Приоритет:** 🔴 Критичен за миграция
-
-Текущо имаме само `users` таблица за **admin** потребители. Нужна е отделна таблица за **клиенти на магазина**.
-
-**Schema нужда:**
-```typescript
-customers:
-- id (uuid)
-- email (unique)
-- password (hashed) - или без парола за guest checkout
-- firstName
-- lastName
-- phone
-- isGuest (boolean) - за guest checkout
-- isActive
-- registeredAt
-- lastLoginAt
-- createdAt
-- updatedAt
-
-customer_addresses:
-- id
-- customerId
-- fullName
-- phone
-- address
-- city
-- postalCode
-- country
-- isDefault (boolean)
-- type ('billing' | 'shipping')
-```
-
-**API нужда:**
-- POST /api/customers/register
-- POST /api/customers/login
-- GET /api/customers/me
-- PUT /api/customers/me
-- GET /api/customers/:id/addresses
-- POST /api/customers/:id/addresses
-- PUT /api/addresses/:id
-- DELETE /api/addresses/:id
-
-**Admin UI нужда:**
-- Customers list page
-- Customer detail view
-- Order history per customer
-
----
-
-#### 2. Shopping Cart
+#### 1. Shopping Cart
 **Приоритет:** 🔴 Критичен за online store
 
 **Schema нужда:**

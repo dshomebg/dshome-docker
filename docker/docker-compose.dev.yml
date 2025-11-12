@@ -116,6 +116,7 @@ services:
       - ../packages/admin/app:/app/packages/admin/app
       - ../packages/admin/public:/app/packages/admin/public
       - ../packages/admin/lib:/app/packages/admin/lib
+      - ../packages/admin/components:/app/packages/admin/components
       - ../packages/shared/src:/app/packages/shared/src
       # Exclude node_modules and .next from volume
       - /app/packages/admin/node_modules

@@ -63,7 +63,11 @@ DATABASE_URL=postgresql://prod_user:PASSWORD@postgres:5432/dshome_prod
 
 **Таблици:**
 ```
+# Admin & Users
 users                    # Admin потребители
+customers                # Клиенти (store customers)
+
+# Catalog
 categories               # Категории (йерархични, parentId)
 brands                   # Марки
 suppliers                # Доставчици
@@ -76,13 +80,23 @@ product_combination_attributes  # Атрибути на вариациите
 product_categories       # Many-to-many products↔categories
 product_features         # Характеристики
 warehouses               # Складове
-orders                   # Поръчки
-order_items              # Артикули в поръчка
-shipping_addresses       # Адреси за доставка
 attribute_groups         # Групи атрибути (size, color)
 attribute_values         # Стойности (S, M, L / red, blue)
 feature_groups           # Групи характеристики
 feature_values           # Стойности на характеристики
+
+# Sales
+orders                   # Поръчки
+order_items              # Артикули в поръчка
+order_statuses           # Статуси на поръчки
+shipping_addresses       # Адреси за доставка
+couriers                 # Куриери
+courier_pricing_ranges   # Pricing ranges за куриери
+
+# Design
+email_templates          # Email шаблони
+
+# Settings
 import_templates         # Excel импорт темплейти
 seo_settings             # SEO настройки
 general_settings         # Общи настройки
@@ -167,6 +181,37 @@ DELETE /api/features/:id                # Delete group
 POST   /api/features/:id/values         # Add value
 PUT    /api/feature-values/:id          # Update value
 DELETE /api/feature-values/:id          # Delete value
+
+# Customers
+GET    /api/customers                   # List customers
+POST   /api/customers                   # Create customer
+GET    /api/customers/:id               # Get single customer
+PUT    /api/customers/:id               # Update customer
+DELETE /api/customers/:id               # Delete customer
+POST   /api/customers/:id/change-password  # Change password
+
+# Couriers
+GET    /api/couriers                    # List couriers
+POST   /api/couriers                    # Create courier
+GET    /api/couriers/:id                # Get single courier with pricing ranges
+PUT    /api/couriers/:id                # Update courier
+DELETE /api/couriers/:id                # Delete courier
+POST   /api/couriers/calculate-delivery-price  # Calculate delivery price
+
+# Order Statuses
+GET    /api/order-statuses              # List statuses (ordered by position)
+POST   /api/order-statuses              # Create status
+GET    /api/order-statuses/:id          # Get single status
+PUT    /api/order-statuses/:id          # Update status
+DELETE /api/order-statuses/:id          # Delete status
+
+# Email Templates
+GET    /api/design/email-templates      # List templates
+POST   /api/design/email-templates      # Create template
+GET    /api/design/email-templates/:id  # Get single template
+PUT    /api/design/email-templates/:id  # Update template
+DELETE /api/design/email-templates/:id  # Delete template
+GET    /api/design/email-templates/variables  # Get available variables
 ```
 
 ## Deployment

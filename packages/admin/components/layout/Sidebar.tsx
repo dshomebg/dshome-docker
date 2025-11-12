@@ -52,7 +52,7 @@ const menuItems: MenuItem[] = [
       { title: "Поръчки", path: "/sales/orders" },
       { title: "Клиенти", path: "/sales/customers" },
       { title: "Куриери", path: "/sales/couriers" },
-      { title: "Статуси", path: "/sales/statuses" },
+      { title: "Статуси", path: "/sales/order-statuses" },
     ],
   },
   {
@@ -60,6 +60,7 @@ const menuItems: MenuItem[] = [
     icon: Palette,
     children: [
       { title: "Изображения", path: "/design/image-sizes" },
+      { title: "Email шаблони", path: "/design/email-templates" },
     ],
   },
   {
