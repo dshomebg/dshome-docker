@@ -62,6 +62,8 @@ services:
       dockerfile: packages/backend/Dockerfile.dev
     container_name: dshome-backend-dev
     restart: unless-stopped
+    env_file:
+      - ../.env
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://dev:dev@postgres:5432/dshome_dev
@@ -73,6 +75,7 @@ services:
       JWT_ACCESS_EXPIRATION: 15m
       JWT_REFRESH_EXPIRATION: 7d
       LOG_LEVEL: debug
+      # SMTP vars are loaded from env_file (../.env)
     ports:
       - "4000:4000"
     volumes:

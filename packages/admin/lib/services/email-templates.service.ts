@@ -57,4 +57,10 @@ export const emailTemplatesService = {
     const response = await apiClient.get('/design/email-templates/variables');
     return response.data;
   },
+
+  // Send test email
+  sendTestEmail: async (id: string, email: string): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.post(`/design/email-templates/${id}/send-test`, { email });
+    return response.data;
+  },
 };

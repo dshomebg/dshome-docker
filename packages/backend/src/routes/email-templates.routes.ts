@@ -6,6 +6,7 @@ import {
   updateEmailTemplate,
   deleteEmailTemplate,
   getAvailableVariables,
+  sendTestEmail,
 } from '../controllers/email-templates.controller';
 
 const router: Router = Router();
@@ -27,5 +28,8 @@ router.put('/:id', updateEmailTemplate);
 
 // Delete email template
 router.delete('/:id', deleteEmailTemplate);
+
+// Send test email
+router.post('/:id/send-test', sendTestEmail);
 
 export default router;

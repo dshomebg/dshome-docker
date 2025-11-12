@@ -7,7 +7,7 @@ import {
   EmailTemplate,
   EmailVariable,
 } from "@/lib/services/email-templates.service";
-import { Save, X } from "lucide-react";
+import { Save, X, Mail } from "lucide-react";
 import TiptapEditorWithVariables from "@/components/editor/TiptapEditorWithVariables";
 
 interface EmailTemplateFormProps {
@@ -18,6 +18,9 @@ interface EmailTemplateFormProps {
 export default function EmailTemplateForm({ mode, template }: EmailTemplateFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [showTestEmailModal, setShowTestEmailModal] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
   const [variables, setVariables] = useState<EmailVariable[]>([]);
   const [formData, setFormData] = useState({
     name: template?.name || "",
@@ -65,6 +68,32 @@ export default function EmailTemplateForm({ mode, template }: EmailTemplateFormP
       alert(error.response?.data?.message || "Неуспешно запазване");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!testEmail.trim()) {
+      alert("Моля, въведете имейл адрес");
+      return;
+    }
+
+    if (!template) {
+      alert("Шаблонът трябва да бъде запазен преди да изпратите тестов имейл");
+      return;
+    }
+
+    setSendingTest(true);
+
+    try {
+      await emailTemplatesService.sendTestEmail(template.id, testEmail);
+      alert("Тестовият имейл беше изпратен успешно!");
+      setShowTestEmailModal(false);
+      setTestEmail("");
+    } catch (error: any) {
+      console.error("Error sending test email:", error);
+      alert(error.response?.data?.message || "Неуспешно изпращане на тестов имейл");
+    } finally {
+      setSendingTest(false);
     }
   };
 
@@ -128,24 +157,87 @@ export default function EmailTemplateForm({ mode, template }: EmailTemplateFormP
       </div>
 
       {/* Form Actions */}
-      <div className="flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="flex items-center gap-1.5 rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.08]"
-        >
-          <X className="h-3.5 w-3.5" />
-          Отказ
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex items-center gap-1.5 rounded bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Save className="h-3.5 w-3.5" />
-          {loading ? "Запазване..." : "Запази"}
-        </button>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          {mode === "edit" && template && (
+            <button
+              type="button"
+              onClick={() => setShowTestEmailModal(true)}
+              className="flex items-center gap-1.5 rounded border border-green-500 px-3 py-1.5 text-xs font-medium text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-500/10"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              Изпрати тестов имейл
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex items-center gap-1.5 rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.08]"
+          >
+            <X className="h-3.5 w-3.5" />
+            Отказ
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-1.5 rounded bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Save className="h-3.5 w-3.5" />
+            {loading ? "Запазване..." : "Запази"}
+          </button>
+        </div>
       </div>
+
+      {/* Test Email Modal */}
+      {showTestEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 dark:border-white/[0.05] dark:bg-gray-900">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+              Изпрати тестов имейл
+            </h3>
+            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              Въведете имейл адрес, на който да изпратим тестов имейл с този шаблон.
+              Всички променливи ще бъдат заменени с тестови данни.
+            </p>
+            <div className="mb-4">
+              <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Имейл адрес <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                placeholder="email@example.com"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTestEmailModal(false);
+                  setTestEmail("");
+                }}
+                disabled={sendingTest}
+                className="rounded border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.08]"
+              >
+                Отказ
+              </button>
+              <button
+                type="button"
+                onClick={handleSendTestEmail}
+                disabled={sendingTest}
+                className="rounded bg-green-500 px-3 py-2 text-xs font-medium text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {sendingTest ? "Изпращане..." : "Изпрати"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

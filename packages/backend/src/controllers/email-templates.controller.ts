@@ -3,6 +3,7 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { emailTemplates } from '../db/schema';
 import { AppError } from '../middleware/error.middleware';
+import { emailService } from '../services/email.service';
 
 // Get all email templates
 export const getEmailTemplates = async (req: Request, res: Response, next: NextFunction) => {
@@ -179,6 +180,46 @@ export const getAvailableVariables = async (req: Request, res: Response, next: N
     res.json({
       success: true,
       data: variables,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Send test email
+export const sendTestEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+
+    if (!email) {
+      throw new AppError(400, 'Email address is required', 'VALIDATION_ERROR');
+    }
+
+    // Get template
+    const template = await db.select().from(emailTemplates).where(eq(emailTemplates.id, id)).limit(1);
+
+    if (!template.length) {
+      throw new AppError(404, 'Email template not found', 'TEMPLATE_NOT_FOUND');
+    }
+
+    // Get test variables
+    const testVariables = emailService.getTestVariables();
+
+    // Replace variables in subject and content
+    const subject = emailService.replaceVariables(template[0].subject, testVariables);
+    const htmlContent = emailService.replaceVariables(template[0].content, testVariables);
+
+    // Send test email
+    const result = await emailService.sendTestEmail(email, subject, htmlContent);
+
+    if (!result.success) {
+      throw new AppError(500, result.error || 'Failed to send test email', 'EMAIL_SEND_ERROR');
+    }
+
+    res.json({
+      success: true,
+      message: 'Тестовият имейл беше изпратен успешно',
     });
   } catch (error) {
     next(error);
