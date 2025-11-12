@@ -18,6 +18,7 @@ import richSnippetsSettingsRoutes from './rich-snippets-settings.routes';
 import importTemplatesRoutes from './import-templates.routes';
 import productImportRoutes from './product-import.routes';
 import imageSizeTemplateRoutes from './image-size-template.routes';
+import customersRoutes from './customers.routes';
 
 const router: Router = Router();
 
@@ -40,5 +41,6 @@ router.use('/rich-snippets-settings', richSnippetsSettingsRoutes);
 router.use('/import-templates', importTemplatesRoutes);
 router.use('/product-import', productImportRoutes);
 router.use('/design/image-sizes', imageSizeTemplateRoutes);
+router.use('/customers', customersRoutes);
 
 export default router;

@@ -1,1 +1,27 @@
-{"version":"5","dialect":"pg","entries":[{"idx":0,"version":"5","when":1699564800000,"tag":"0000_baseline","breakpoints":true},{"idx":1,"version":"5","when":1731265800000,"tag":"0001_add_image_system","breakpoints":true}]}
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1699564800000,
+      "tag": "0000_baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1731265800000,
+      "tag": "0001_add_image_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762958023334,
+      "tag": "0002_violet_reavers",
+      "breakpoints": true
+    }
+  ]
+}

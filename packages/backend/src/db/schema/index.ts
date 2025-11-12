@@ -1,5 +1,6 @@
 // Export all schemas
 export * from './users';
+export * from './customers';
 export * from './products';
 export * from './categories';
 export * from './brands';
