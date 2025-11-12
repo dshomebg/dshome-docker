@@ -10,7 +10,7 @@ set -e  # Exit on error
 REMOTE_USER="root"
 REMOTE_HOST="157.90.129.12"
 REMOTE_DIR="/opt/dshome"
-COMPOSE_FILE="docker-compose.prod.yml"
+COMPOSE_FILE="../docker-compose.prod.yml"
 
 echo "===================================="
 echo "DSHome Docker Deployment"
