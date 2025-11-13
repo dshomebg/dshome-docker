@@ -22,6 +22,27 @@
       "when": 1762958023334,
       "tag": "0002_violet_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1763049695765,
+      "tag": "0003_dashing_russian",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1763051833176,
+      "tag": "0004_curved_bastion",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1763062747270,
+      "tag": "0005_gorgeous_manta",
+      "breakpoints": true
     }
   ]
 }

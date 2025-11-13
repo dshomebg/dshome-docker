@@ -22,6 +22,7 @@ import customersRoutes from './customers.routes';
 import couriersRoutes from './couriers.routes';
 import emailTemplatesRoutes from './email-templates.routes';
 import orderStatusesRoutes from './order-statuses.routes';
+import ordersRoutes from './orders.routes';
 
 const router: Router = Router();
 
@@ -48,5 +49,6 @@ router.use('/design/email-templates', emailTemplatesRoutes);
 router.use('/customers', customersRoutes);
 router.use('/couriers', couriersRoutes);
 router.use('/order-statuses', orderStatusesRoutes);
+router.use('/orders', ordersRoutes);
 
 export default router;

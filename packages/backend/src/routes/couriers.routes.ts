@@ -13,6 +13,9 @@ const router: Router = Router();
 // Get all couriers
 router.get('/', getCouriers);
 
+// Calculate delivery price (must be before /:id to avoid conflicts)
+router.post('/calculate-price', calculateDeliveryPrice);
+
 // Get single courier
 router.get('/:id', getCourier);
 
@@ -24,8 +27,5 @@ router.put('/:id', updateCourier);
 
 // Delete courier
 router.delete('/:id', deleteCourier);
-
-// Calculate delivery price
-router.post('/calculate-price', calculateDeliveryPrice);
 
 export default router;

@@ -10,5 +10,8 @@ const client = postgres(connectionString, { max: 10 });
 // Create drizzle instance
 export const db = drizzle(client, { schema });
 
+// Export postgres client for raw queries
+export const sql = client;
+
 // Export types
 export type Database = typeof db;
