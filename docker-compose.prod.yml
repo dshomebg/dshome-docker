@@ -63,7 +63,7 @@ services:
       dockerfile: ./packages/backend/Dockerfile
     container_name: dshome-backend-prod
     restart: unless-stopped
-    command: sh -c "cd /app/packages/backend && pnpm start"
+    # Use startup script from Dockerfile (runs migrations then starts server)
     ports:
       - "3000:3000"
     environment:

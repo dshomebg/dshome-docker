@@ -44,14 +44,13 @@ COPY package.json pnpm-lock.yaml ./
 COPY --from=base /app/packages/shared ./packages/shared
 COPY --from=base /app/packages/backend ./packages/backend
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install all dependencies (including drizzle-kit for migrations)
+RUN pnpm install --frozen-lockfile
 
 # Create uploads directory
 RUN mkdir -p /app/packages/backend/uploads
 
-# Copy startup script
-COPY packages/backend/docker-start.sh /app/packages/backend/
+# Make startup script executable (already copied from base stage)
 RUN chmod +x /app/packages/backend/docker-start.sh
 
 # Expose port

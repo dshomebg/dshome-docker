@@ -12,12 +12,8 @@ fi
 echo "Running database migrations..."
 cd /app/packages/backend
 
-# Run migrations using tsx to execute the migration script
-if [ -f "src/db/migrate.ts" ]; then
-  npx tsx src/db/migrate.ts || echo "Warning: Migration script failed or not found"
-else
-  echo "Warning: Migration script not found at src/db/migrate.ts"
-fi
+# Run migrations using drizzle-kit
+npx drizzle-kit push --yes || echo "Warning: Migration failed"
 
 echo "Starting backend server..."
 # Start the backend

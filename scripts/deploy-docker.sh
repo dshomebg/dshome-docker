@@ -27,8 +27,8 @@ docker save dshome-backend-prod:latest | gzip > backend-image.tar.gz
 docker save dshome-admin-prod:latest | gzip > admin-image.tar.gz
 
 echo ""
-echo "[3/6] Uploading images to server..."
-scp backend-image.tar.gz admin-image.tar.gz "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/"
+echo "[3/6] Uploading files to server..."
+scp backend-image.tar.gz admin-image.tar.gz "$COMPOSE_FILE" .env "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/"
 
 echo ""
 echo "[4/6] Loading images on server..."
