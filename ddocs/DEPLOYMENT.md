@@ -53,10 +53,13 @@ cd F:\DOCKER\dshome-docker
 This script will:
 1. Build Docker images locally
 2. Save images to tar.gz files
-3. Upload images to production server
+3. Upload images and config files (.env, docker-compose.prod.yml) to production server
 4. Load images on server
 5. Deploy with docker-compose
-6. Clean up temporary files
+6. **Migrations run automatically** via docker-start.sh on container startup
+7. Clean up temporary files
+
+**Important:** Shell scripts must have Unix line endings (LF). See troubleshooting if deployment fails.
 
 ### Option B: Manual Deployment
 
@@ -210,26 +213,41 @@ This rebuilds images and redeploys containers.
 
 ### Database Migrations
 
-If schema changes are needed:
+**Automatic Migration (Default):**
+
+Migrations run automatically when backend container starts via `docker-start.sh`:
 
 ```bash
-# 1. Deploy new code
+# Just deploy - migrations happen automatically
 ./scripts/deploy-docker.sh
-
-# 2. Run migrations on server
-ssh root@157.90.129.12
-cd /opt/dshome
-docker exec dshome-backend-prod sh -c 'cd /app/packages/backend && npx drizzle-kit push:pg'
 ```
 
-**Note:** If drizzle-kit is not in production image, run migrations manually:
+The startup script executes:
 ```bash
-# Connect to database
-docker exec -i dshome-postgres-prod psql -U admin_dsdock -d admin_dsdock
-
-# Run SQL commands
-ALTER TABLE your_table ADD COLUMN new_column TYPE;
+echo "y" | npx drizzle-kit push:pg
 ```
+
+**Manual Migration (If Needed):**
+
+```bash
+# SSH to server
+ssh root@157.90.129.12
+
+# Run migrations manually
+docker exec dshome-backend-prod sh -c 'cd /app/packages/backend && echo "y" | npx drizzle-kit push:pg'
+```
+
+**Troubleshooting:**
+
+If migrations fail, check logs:
+```bash
+docker logs dshome-backend-prod --tail 100
+```
+
+Common issues:
+- Line endings (CRLF vs LF) in docker-start.sh
+- drizzle-kit not installed (check Dockerfile uses `pnpm install --frozen-lockfile`)
+- Database connection failed (check DATABASE_URL uses service name `postgres`)
 
 ## Verification
 

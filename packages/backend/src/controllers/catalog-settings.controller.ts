@@ -8,10 +8,20 @@ import { logger } from '../utils/logger';
 // Get catalog settings (singleton)
 export const getCatalogSettings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const [settings] = await db.select().from(catalogSettings).limit(1);
+    let [settings] = await db.select().from(catalogSettings).limit(1);
 
+    // If no settings exist, create default settings
     if (!settings) {
-      throw new AppError(404, 'Catalog settings not found', 'SETTINGS_NOT_FOUND');
+      [settings] = await db.insert(catalogSettings)
+        .values({
+          vatPercentage: '20.00',
+          productsPerPage: 24,
+          newProductPeriodDays: 30,
+          defaultSorting: 'created_desc'
+        })
+        .returning();
+
+      logger.info('Created default catalog settings');
     }
 
     logger.info('Fetched catalog settings');
@@ -28,10 +38,22 @@ export const updateCatalogSettings = async (req: Request, res: Response, next: N
     const { vatPercentage, productsPerPage, newProductPeriodDays, defaultSorting } = req.body;
 
     // Get the existing settings
-    const [existingSettings] = await db.select().from(catalogSettings).limit(1);
+    let [existingSettings] = await db.select().from(catalogSettings).limit(1);
 
+    // If no settings exist, create them first
     if (!existingSettings) {
-      throw new AppError(404, 'Catalog settings not found', 'SETTINGS_NOT_FOUND');
+      [existingSettings] = await db.insert(catalogSettings)
+        .values({
+          vatPercentage: vatPercentage || '20.00',
+          productsPerPage: productsPerPage || 24,
+          newProductPeriodDays: newProductPeriodDays || 30,
+          defaultSorting: defaultSorting || 'created_desc'
+        })
+        .returning();
+
+      logger.info('Created catalog settings');
+      res.json({ data: existingSettings });
+      return;
     }
 
     const [updatedSettings] = await db.update(catalogSettings)

@@ -55,11 +55,16 @@ Project: /opt/dshome
 # Development (Docker)
 DATABASE_URL=postgresql://dev:dev@postgres:5432/dshome_dev
 
-# Production (Docker)
-DATABASE_URL=postgresql://prod_user:PASSWORD@postgres:5432/dshome_prod
+# Production (Docker) - CURRENT
+DATABASE_URL=postgresql://dev:dev@postgres:5432/dshome_dev
+POSTGRES_USER=dev
+POSTGRES_PASSWORD=dev
+POSTGRES_DB=dshome_dev
 ```
 
-**Важно:** В Docker се използват service names (`postgres`, `redis`, `meilisearch`), НЕ `localhost`!
+**Важно:**
+- В Docker се използват service names (`postgres`, `redis`, `meilisearch`), НЕ `localhost`!
+- Migrations се изпълняват автоматично при deployment през `docker-start.sh`
 
 **Таблици:**
 ```
@@ -228,6 +233,7 @@ pnpm dev                  # All packages in watch mode
 2. Запазва ги в tar.gz файлове
 3. Качва ги на сървъра със SCP
 4. Зарежда images и стартира контейнерите
+5. **Migrations се изпълняват автоматично** в `docker-start.sh` преди стартиране на backend
 
 ```bash
 # From local machine
@@ -261,16 +267,16 @@ rm backend-image.tar.gz admin-image.tar.gz
 **Database migrations:**
 ```bash
 # Development
-pnpm db:generate          # Generate migration from schema changes
-pnpm db:migrate           # Run migrations
+cd packages/backend
+npx drizzle-kit push:pg   # Push schema changes to DB
 
-# Production - Run inside backend container
-docker exec -it dshome-backend-prod sh -c "cd /app/packages/backend && pnpm db:migrate"
+# Production - AUTOMATIC
+# Migrations run automatically in docker-start.sh on container startup
+# No manual intervention needed!
 
-# OR via docker compose
+# If manual run needed:
 ssh root@157.90.129.12
-cd /opt/dshome
-docker compose -f docker-compose.prod.yml exec backend pnpm db:migrate
+docker exec dshome-backend-prod sh -c "cd /app/packages/backend && echo 'y' | npx drizzle-kit push:pg"
 ```
 
 ## Image Storage

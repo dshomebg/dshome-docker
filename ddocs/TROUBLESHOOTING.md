@@ -338,6 +338,101 @@ Check backend CORS configuration allows frontend domain.
 
 ## Deployment Issues
 
+### Shell Script Not Found in Container
+
+**Symptom:**
+```
+/app/packages/backend/docker-start.sh: not found
+```
+
+**Cause:** Windows CRLF line endings (`\r\n`) instead of Unix LF (`\n`). Linux interprets shebang as `#!/bin/sh\r`.
+
+**Solution:**
+```bash
+# Convert line endings
+sed -i 's/\r$//' packages/backend/docker-start.sh
+
+# Verify with od
+od -c packages/backend/docker-start.sh | head -1
+# Should show: #   !   /   b   i   n   /   s   h  \n
+
+# Rebuild and redeploy
+./scripts/deploy-docker.sh
+```
+
+**Prevention:** Configure Git to handle line endings:
+```bash
+# .gitattributes
+*.sh text eol=lf
+```
+
+### Migrations Not Running in Production
+
+**Symptom:** Tables don't exist or schema is outdated after deployment.
+
+**Cause 1:** `drizzle-kit` not installed (removed by `--prod` flag).
+
+**Solution:** Ensure Dockerfile installs all dependencies:
+```dockerfile
+# Install all dependencies (including drizzle-kit for migrations)
+RUN pnpm install --frozen-lockfile
+```
+
+**Cause 2:** `docker-compose.prod.yml` overrides startup script with `command:`.
+
+**Solution:** Remove `command:` from backend service in docker-compose.prod.yml to use Dockerfile's CMD.
+
+**Cause 3:** Wrong drizzle-kit command syntax.
+
+**Solution:** Use correct syntax in docker-start.sh:
+```bash
+echo "y" | npx drizzle-kit push:pg
+```
+
+### TypeScript Compilation Errors with Drizzle Types
+
+**Symptom:**
+```
+error TS2769: No overload matches this call.
+Object literal may only specify known properties...
+```
+
+**Cause:** Incorrect types for Drizzle schema columns:
+- `decimal` columns require string values, not numbers
+- Enum columns require valid enum values from schema
+
+**Solution:** Match types to schema definition:
+```typescript
+// ❌ Wrong
+vatPercentage: 20,
+defaultSorting: 'newest'
+
+// ✅ Correct
+vatPercentage: '20.00',  // decimal → string
+defaultSorting: 'created_desc'  // valid enum value
+```
+
+### Catalog Settings 404 Error
+
+**Symptom:** Admin panel shows 404 when accessing catalog settings on fresh database.
+
+**Cause:** No default settings created in empty database.
+
+**Solution:** Auto-create settings if they don't exist:
+```typescript
+export const getCatalogSettings = async (req, res, next) => {
+  let [settings] = await db.select().from(catalogSettings).limit(1);
+
+  if (!settings) {
+    [settings] = await db.insert(catalogSettings)
+      .values({ /* default values */ })
+      .returning();
+  }
+
+  res.json({ data: settings });
+};
+```
+
 ### Build Failed Locally
 
 **Symptom:**

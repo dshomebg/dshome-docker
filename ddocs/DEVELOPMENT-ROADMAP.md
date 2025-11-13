@@ -4,6 +4,8 @@
 
 ## Текущ Статус
 
+**Последна актуализация:** 2025-11-14
+
 ### ✅ Завършени Модули
 
 #### Backend API + Admin Panel
@@ -28,20 +30,12 @@
 - ✅ **Couriers** - Куриери с pricing ranges и pallet delivery
 - ✅ **Email Templates** - Шаблони за имейли с WYSIWYG editor и променливи
 - ✅ **Order Statuses** - Статуси на поръчки с цветове и email notifications
+- ✅ **Orders** - Пълна функционалност (CRUD, списък, детайли, създаване с autocomplete)
+- ✅ **Automatic Migrations** - Database migrations се изпълняват автоматично при deployment
 
 ### 🔧 Частично Имплементирани
 
-#### Orders Module
-**Schema:** ✅ Дефиниран (orders, order_items, shipping_addresses)
-**API Routes:** ❌ Липсват
-**Controllers:** ❌ Липсват
-**Admin UI:** ❌ Липсва
-
-**Нужно:**
-- API endpoints за CRUD операции
-- Order management в admin panel
-- Order status workflow
-- Email notifications (optional)
+_Няма частично имплементирани модули в момента._
 
 ### ❌ Липсващи Модули
 
@@ -224,15 +218,18 @@ promotions:
 ### Phase 1: Core E-commerce (Преди миграция)
 **Timeline:** 2-3 седмици
 
-1. **Customers Module** (3-4 дни)
+1. ✅ **Customers Module** - ЗАВЪРШЕН
    - Database schema
    - API routes
    - Admin UI за преглед
 
-2. **Orders Module - Complete** (2-3 дни)
+2. ✅ **Orders Module** - ЗАВЪРШЕН
    - API routes (CRUD)
-   - Admin UI
+   - Admin UI (списък, детайли, създаване)
    - Order status workflow
+   - Autocomplete за продукти/клиенти
+   - Auto-fill customer data
+   - Automatic shipping calculation
 
 3. **Shopping Cart** (2-3 дни)
    - Database schema
@@ -321,9 +318,10 @@ promotions:
 
 ### Непосредствени (тази седмица):
 1. [ ] Решение: Frontend stack (React/Next.js/Vue?)
-2. [ ] Създаване на Customers schema
-3. [ ] Customers API routes
-4. [ ] Завършване на Orders API routes
+2. [x] Customers schema - ЗАВЪРШЕН
+3. [x] Customers API routes - ЗАВЪРШЕН
+4. [x] Orders API routes - ЗАВЪРШЕН
+5. [x] Automatic database migrations - ЗАВЪРШЕН
 
 ### Краткосрочни (следващи 2 седмици):
 1. [ ] Shopping Cart implementation

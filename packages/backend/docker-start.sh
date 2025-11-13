@@ -12,8 +12,8 @@ fi
 echo "Running database migrations..."
 cd /app/packages/backend
 
-# Run migrations using drizzle-kit
-npx drizzle-kit push --yes || echo "Warning: Migration failed"
+# Run migrations using drizzle-kit (auto-accept with yes)
+echo "y" | npx drizzle-kit push:pg || echo "Warning: Migration failed"
 
 echo "Starting backend server..."
 # Start the backend
