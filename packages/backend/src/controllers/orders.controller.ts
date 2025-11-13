@@ -49,11 +49,11 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
     // Validate required fields
     if (!customerEmail || !customerPhone) {
-      throw new AppError('Email и телефон са задължителни', 400);
+      throw new AppError(400, 'Email и телефон са задължителни');
     }
 
     if (!items || items.length === 0) {
-      throw new AppError('Поръчката трябва да съдържа поне един продукт', 400);
+      throw new AppError(400, 'Поръчката трябва да съдържа поне един продукт');
     }
 
     // Calculate totals
@@ -160,8 +160,15 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
+    // Cast query parameters to strings
+    const searchStr = search as string | undefined;
+    const statusStr = status as string | undefined;
+    const courierIdStr = courierId as string | undefined;
+    const dateFromStr = dateFrom as string | undefined;
+    const dateToStr = dateTo as string | undefined;
+
     // Use raw SQL query with postgres client to bypass Drizzle ORM issues
-    const searchPattern = search ? `%${search}%` : null;
+    const searchPattern = searchStr ? `%${searchStr}%` : null;
 
     const ordersList = await sql`
       SELECT
@@ -170,17 +177,17 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
       FROM orders o
       LEFT JOIN couriers c ON o.courier_id = c.id
       WHERE 1=1
-        ${search ? sql`AND (
+        ${searchStr ? sql`AND (
           o.order_number ILIKE ${searchPattern}
           OR o.customer_email ILIKE ${searchPattern}
           OR o.customer_phone ILIKE ${searchPattern}
           OR o.customer_first_name ILIKE ${searchPattern}
           OR o.customer_last_name ILIKE ${searchPattern}
         )` : sql``}
-        ${status ? sql`AND o.status = ${status}` : sql``}
-        ${courierId ? sql`AND o.courier_id = ${courierId}` : sql``}
-        ${dateFrom ? sql`AND o.created_at >= ${dateFrom}` : sql``}
-        ${dateTo ? sql`AND o.created_at <= ${dateTo}` : sql``}
+        ${statusStr ? sql`AND o.status = ${statusStr}` : sql``}
+        ${courierIdStr ? sql`AND o.courier_id = ${courierIdStr}` : sql``}
+        ${dateFromStr ? sql`AND o.created_at >= ${dateFromStr}` : sql``}
+        ${dateToStr ? sql`AND o.created_at <= ${dateToStr}` : sql``}
       ORDER BY o.created_at DESC
       LIMIT ${limitNum}
       OFFSET ${offset}
@@ -190,17 +197,17 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
     const countResult = await sql`
       SELECT COUNT(*) as count FROM orders o
       WHERE 1=1
-        ${search ? sql`AND (
+        ${searchStr ? sql`AND (
           o.order_number ILIKE ${searchPattern}
           OR o.customer_email ILIKE ${searchPattern}
           OR o.customer_phone ILIKE ${searchPattern}
           OR o.customer_first_name ILIKE ${searchPattern}
           OR o.customer_last_name ILIKE ${searchPattern}
         )` : sql``}
-        ${status ? sql`AND o.status = ${status}` : sql``}
-        ${courierId ? sql`AND o.courier_id = ${courierId}` : sql``}
-        ${dateFrom ? sql`AND o.created_at >= ${dateFrom}` : sql``}
-        ${dateTo ? sql`AND o.created_at <= ${dateTo}` : sql``}
+        ${statusStr ? sql`AND o.status = ${statusStr}` : sql``}
+        ${courierIdStr ? sql`AND o.courier_id = ${courierIdStr}` : sql``}
+        ${dateFromStr ? sql`AND o.created_at >= ${dateFromStr}` : sql``}
+        ${dateToStr ? sql`AND o.created_at <= ${dateToStr}` : sql``}
     `;
     const totalCount = Number(countResult[0]?.count || 0);
 
@@ -210,7 +217,7 @@ export const getOrders = async (req: Request, res: Response, next: NextFunction)
         const items = await db
           .select()
           .from(orderItems)
-          .where(eq(orderItems.orderId, order.id));
+          .where(eq(orderItems.orderId, order.id as string));
 
         // Convert to camelCase
         return toCamelCase({
@@ -247,7 +254,7 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
     `;
 
     if (!orderData || orderData.length === 0) {
-      throw new AppError('Поръчката не е намерена', 404);
+      throw new AppError(404, 'Поръчката не е намерена');
     }
 
     const order = orderData[0];
@@ -256,13 +263,13 @@ export const getOrder = async (req: Request, res: Response, next: NextFunction) 
     const items = await db
       .select()
       .from(orderItems)
-      .where(eq(orderItems.orderId, id));
+      .where(eq(orderItems.orderId, id as string));
 
     // Fetch shipping address
     const shippingAddressData = await db
       .select()
       .from(shippingAddresses)
-      .where(eq(shippingAddresses.orderId, id))
+      .where(eq(shippingAddresses.orderId, id as string))
       .limit(1);
 
     const shippingAddress = shippingAddressData[0] || null;
@@ -288,18 +295,18 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
     const { status } = req.body;
 
     if (!status) {
-      throw new AppError('Статусът е задължителен', 400);
+      throw new AppError(400, 'Статусът е задължителен');
     }
 
     // Verify order exists
     const existingOrder = await db
       .select()
       .from(orders)
-      .where(eq(orders.id, id))
+      .where(eq(orders.id, id as string))
       .limit(1);
 
     if (!existingOrder || existingOrder.length === 0) {
-      throw new AppError('Поръчката не е намерена', 404);
+      throw new AppError(404, 'Поръчката не е намерена');
     }
 
     // Update order status
@@ -309,7 +316,7 @@ export const updateOrderStatus = async (req: Request, res: Response, next: NextF
         status,
         updatedAt: new Date()
       })
-      .where(eq(orders.id, id))
+      .where(eq(orders.id, id as string))
       .returning();
 
     logger.info(`Updated order ${id} status to ${status}`);
@@ -340,11 +347,11 @@ export const updateOrder = async (req: Request, res: Response, next: NextFunctio
     const existingOrder = await db
       .select()
       .from(orders)
-      .where(eq(orders.id, id))
+      .where(eq(orders.id, id as string))
       .limit(1);
 
     if (!existingOrder || existingOrder.length === 0) {
-      throw new AppError('Поръчката не е намерена', 404);
+      throw new AppError(404, 'Поръчката не е намерена');
     }
 
     // Build update object
@@ -363,7 +370,7 @@ export const updateOrder = async (req: Request, res: Response, next: NextFunctio
     const [updatedOrder] = await db
       .update(orders)
       .set(updateData)
-      .where(eq(orders.id, id))
+      .where(eq(orders.id, id as string))
       .returning();
 
     logger.info(`Updated order ${id}`);
@@ -386,15 +393,15 @@ export const deleteOrder = async (req: Request, res: Response, next: NextFunctio
     const existingOrder = await db
       .select()
       .from(orders)
-      .where(eq(orders.id, id))
+      .where(eq(orders.id, id as string))
       .limit(1);
 
     if (!existingOrder || existingOrder.length === 0) {
-      throw new AppError('Поръчката не е намерена', 404);
+      throw new AppError(404, 'Поръчката не е намерена');
     }
 
     // Delete order (cascade will delete order items and shipping address)
-    await db.delete(orders).where(eq(orders.id, id));
+    await db.delete(orders).where(eq(orders.id, id as string));
 
     logger.info(`Deleted order ${id}`);
 

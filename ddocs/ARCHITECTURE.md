@@ -16,7 +16,7 @@ http://157.90.129.12:3000/api/   → Backend API (direct)
 ### Development (localhost)
 ```
 http://localhost:5173/           → Frontend (Vite)
-http://localhost:3001/           → Admin Panel (Next.js)
+http://localhost:3001/admin/           → Admin Panel (Next.js)
 http://localhost:4000/api/       → Backend API
 http://localhost:5432            → PostgreSQL
 http://localhost:6379            → Redis
