@@ -49,7 +49,8 @@ DEFAULT_CURRENCY=EUR
 ```
 
 ## Стъпка 3: Docker Desktop настройка
-
+# Install всички dependencies
+pnpm install
 1. Стартирай **Docker Desktop**
 2. Изчакай да се стартира напълно (whale иконката да спре да мига)
 
