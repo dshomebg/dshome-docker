@@ -9,10 +9,17 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
+    // Allow images from same domain (relative URLs like /uploads/...)
+    // Nginx will proxy /uploads/* to backend
+    unoptimized: false,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'dshome.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.dshome.dev',
       },
       {
         protocol: 'http',

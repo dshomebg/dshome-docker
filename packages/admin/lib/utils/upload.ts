@@ -46,24 +46,24 @@ export const uploadImage = async (
     throw new Error(response.data.message || 'Failed to upload image');
   }
 
-  // Return full URL with backend base URL (without /api suffix)
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-  const backendUrl = apiUrl.replace('/api', '');
+  // Return relative URLs - Nginx will handle proxying to backend
+  // On production: /uploads/* -> proxied to backend via Nginx
+  // On development: /uploads/* -> served by backend on localhost:4000
 
   // If using new multi-size system, return the original URL (always unique)
   // For admin panel, we want the original high-quality image
   if (response.data.data.originalUrl) {
-    return `${backendUrl}${response.data.data.originalUrl}`;
+    return response.data.data.originalUrl;
   }
 
   // Fallback for legacy uploads
   if (response.data.data.url) {
-    return `${backendUrl}${response.data.data.url}`;
+    return response.data.data.url;
   }
 
   // Last resort fallback to original from urls object
   if (response.data.data.urls?.original) {
-    return `${backendUrl}${response.data.data.urls.original}`;
+    return response.data.data.urls.original;
   }
 
   throw new Error('No URL found in upload response');
@@ -96,30 +96,9 @@ export const uploadImageWithDetails = async (
     throw new Error(response.data.message || 'Failed to upload image');
   }
 
-  // Prepend backend URL to all URLs
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-  const backendUrl = apiUrl.replace('/api', '');
-
-  const data = response.data.data;
-
-  // Convert relative URLs to absolute URLs
-  if (data.urls) {
-    const absoluteUrls: Record<string, string> = {};
-    for (const [key, value] of Object.entries(data.urls)) {
-      absoluteUrls[key] = `${backendUrl}${value}`;
-    }
-    data.urls = absoluteUrls;
-  }
-
-  if (data.originalUrl) {
-    data.originalUrl = `${backendUrl}${data.originalUrl}`;
-  }
-
-  if (data.url) {
-    data.url = `${backendUrl}${data.url}`;
-  }
-
-  return data;
+  // Return relative URLs - Nginx will handle proxying to backend
+  // Backend returns relative URLs like /uploads/... which work on both dev and production
+  return response.data.data;
 };
 
 /**
