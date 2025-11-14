@@ -48,9 +48,15 @@ NODE_ENV=development
 DEFAULT_CURRENCY=EUR
 ```
 
-## Стъпка 3: Docker Desktop настройка
-# Install всички dependencies
+## Стъпка 3: Install dependencies
+
+```bash
+# От root папката на проекта
 pnpm install
+```
+
+## Стъпка 4: Docker Desktop настройка
+
 1. Стартирай **Docker Desktop**
 2. Изчакай да се стартира напълно (whale иконката да спре да мига)
 
@@ -59,7 +65,7 @@ pnpm install
 - Промени "Disk image location" на `E:\Docker\wsl`
 - Apply & Restart
 
-## Стъпка 4: Стартирай containers
+## Стъпка 5: Стартирай containers
 
 ```bash
 # От root папката на проекта
@@ -69,9 +75,9 @@ docker compose -f docker/docker-compose.dev.yml up -d --build
 docker ps
 ```
 
-Очакваш 5 контейнера running: backend, admin, postgres, redis, meilisearch
+Очакваш 3 контейнера running: postgres, redis, meilisearch
 
-## Стъпка 5: Database migrations
+## Стъпка 6: Database migrations
 
 ```bash
 # Влез в backend папката
@@ -79,9 +85,24 @@ cd packages/backend
 
 # Създай/актуализирай таблиците
 npx drizzle-kit push:pg
+cd ../..
 ```
 
-## Стъпка 6: Провери че работи
+**Важно:** `drizzle-kit` автоматично заменя `postgres` с `localhost` когато се изпълнява извън Docker. Не е нужно да променяш `.env` файла.
+
+## Стъпка 7: Стартирай development сървърите
+
+```bash
+# От root папката - стартира backend, admin и frontend
+pnpm dev
+```
+
+Това ще стартира:
+- **Backend API** на http://localhost:4000
+- **Admin Panel** на http://localhost:3001
+- **Frontend Store** на http://localhost:5173
+
+## Стъпка 8: Провери че работи
 
 **Backend API:**
 ```
@@ -99,21 +120,29 @@ http://localhost:3001/admin
 
 ## Ежедневна работа
 
-**Стартиране:**
+**Стартиране на Docker контейнери:**
 ```bash
-# От root папката на проекта
+# Стартирай postgres, redis, meilisearch
 docker compose -f docker/docker-compose.dev.yml up -d
+```
+
+**Стартиране на dev сървърите:**
+```bash
+# Backend, Admin, Frontend в watch mode
+pnpm dev
+
+# Или по отделно:
+pnpm --filter @dshome/backend dev
+pnpm --filter @dshome/admin dev
+pnpm --filter @dshome/frontend dev
 ```
 
 **Спиране:**
 ```bash
-docker compose -f docker/docker-compose.dev.yml down
-```
+# Ctrl+C за да спреш dev сървърите
 
-**След промени в кода:**
-```bash
-docker restart dshome-backend-dev
-docker restart dshome-admin-dev
+# Спри Docker контейнери
+docker compose -f docker/docker-compose.dev.yml down
 ```
 
 ---
