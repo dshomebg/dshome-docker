@@ -23,6 +23,8 @@ import couriersRoutes from './couriers.routes';
 import emailTemplatesRoutes from './email-templates.routes';
 import orderStatusesRoutes from './order-statuses.routes';
 import ordersRoutes from './orders.routes';
+import reviewsRoutes from './reviews.routes';
+import productQaRoutes from './product-qa.routes';
 
 const router: Router = Router();
 
@@ -50,5 +52,7 @@ router.use('/customers', customersRoutes);
 router.use('/couriers', couriersRoutes);
 router.use('/order-statuses', orderStatusesRoutes);
 router.use('/orders', ordersRoutes);
+router.use('/reviews', reviewsRoutes);
+router.use('/product-qa', productQaRoutes);
 
 export default router;
