@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Upload, X, Pencil, Loader2 } from "lucide-react";
 import ImageEditor from "./ImageEditor";
 import { uploadImage, base64ToFile } from "@/lib/utils/upload";
-import { urlToBase64 } from "@/lib/utils/image";
+import { urlToBase64, getAbsoluteImageUrl } from "@/lib/utils/image";
 
 interface ImageUploadProps {
   value?: string;
@@ -145,7 +145,7 @@ export default function ImageUpload({ value, onChange, onRemove }: ImageUploadPr
         <div className="relative inline-block">
           <div className="relative h-40 w-40 overflow-hidden rounded-lg border-2 border-gray-300 dark:border-gray-700">
             <Image
-              src={preview}
+              src={getAbsoluteImageUrl(preview)}
               alt="Preview"
               fill
               className="object-cover"

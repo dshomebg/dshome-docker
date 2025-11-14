@@ -1,4 +1,26 @@
 /**
+ * Convert relative URLs to absolute for Next.js Image component
+ * @param url - Image URL (relative or absolute)
+ * @returns Absolute URL
+ */
+export function getAbsoluteImageUrl(url: string): string {
+  if (!url) return '';
+
+  // Already absolute or base64
+  if (url.startsWith('http') || url.startsWith('data:')) {
+    return url;
+  }
+
+  // Relative URL - make it absolute for current domain
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${url}`;
+  }
+
+  // Fallback for SSR (shouldn't happen with client components)
+  return url;
+}
+
+/**
  * Convert image URL to base64 string
  * @param url - Image URL to convert
  * @returns Promise with base64 string

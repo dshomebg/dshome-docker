@@ -491,6 +491,48 @@ cd /opt/dshome
 docker compose -f docker-compose.prod.yml up -d --force-recreate backend
 ```
 
+### Uploaded Images Not Displaying (500 Error)
+
+**Symptom:**
+- Images upload successfully but show 500 Internal Server Error in browser
+- Browser console shows: `/_next/image?url=http://localhost:4000/uploads/...&w=1920&q=75 500 (Internal Server Error)`
+- Admin panel shows broken image icons
+
+**Root Cause:**
+Admin panel's upload utility was prepending full backend URL (`http://localhost:4000`) to relative image paths returned by backend API. This caused Next.js Image Optimizer to try fetching from `localhost` on production, which fails because:
+- On production, `localhost` refers to the container itself, not the host
+- Next.js Image Optimizer can't reach backend through Docker network
+
+**Solution:**
+Return relative URLs (`/uploads/...`) from backend, convert to absolute only for Next.js Image component.
+
+**Files Changed:**
+1. `packages/admin/lib/utils/upload.ts` - Return relative paths from API
+2. `packages/admin/lib/utils/image.ts` - Add `getAbsoluteImageUrl()` helper
+3. `packages/admin/components/ui/ImageUpload.tsx` - Use helper for Next.js Image
+4. `packages/admin/next.config.ts` - Add www.dshome.dev to remotePatterns
+
+**Technical Details:**
+
+Backend returns relative URLs:
+```typescript
+return response.data.data.url;  // Returns /uploads/...
+```
+
+Convert to absolute for Next.js Image component:
+```typescript
+// lib/utils/image.ts
+export function getAbsoluteImageUrl(url: string): string {
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  return `${window.location.origin}${url}`;  // https://www.dshome.dev/uploads/...
+}
+
+// In components:
+<Image src={getAbsoluteImageUrl(imageUrl)} ... />
+```
+
+Database stores relative URLs, but browser displays with absolute URLs. Nginx proxies `/uploads/*` to backend.
+
 ### Server Can't Load Images
 
 **Symptom:** Server runs out of memory when loading images
