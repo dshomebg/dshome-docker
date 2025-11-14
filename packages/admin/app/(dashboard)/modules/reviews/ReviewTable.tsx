@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ReviewWithProduct } from "@/lib/services/reviews.service";
-import { Star, Eye, Trash2, MessageSquare } from "lucide-react";
+import { Star, Eye, Trash2, MessageSquare, CheckCircle, XCircle } from "lucide-react";
 
 interface ReviewTableProps {
   reviews: ReviewWithProduct[];

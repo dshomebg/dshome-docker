@@ -256,7 +256,7 @@ export default function NewReviewPage() {
                   Верифицирана покупка
                 </span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Отзивът ще получи badge "Верифицирана покупка" (името винаги се показва)
+                  Отзивът ще получи badge &quot;Верифицирана покупка&quot; (името винаги се показва)
                 </span>
               </div>
             </label>
