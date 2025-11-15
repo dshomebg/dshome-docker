@@ -161,9 +161,9 @@ async function getSameCategoryProducts(
       name: p.product.name,
       slug: p.product.slug,
       sku: p.product.sku,
-      image: p.product.image,
-      price: parseFloat(p.product.price || '0'),
-      compareAtPrice: p.product.compareAtPrice ? parseFloat(p.product.compareAtPrice) : null,
+      image: p.product.ogImage || null, // TODO: Fetch from productImages table
+      price: 0, // TODO: Fetch from productCombinations table
+      compareAtPrice: null, // TODO: Fetch from productCombinations table
       similarityScore: 50, // Base score for same category
       matchDetails: {
         sameCategory: true,
@@ -239,7 +239,7 @@ async function getSimilarFeatureProducts(
   const scoredProducts: SimilarProduct[] = [];
 
   for (const candidate of candidateProducts) {
-    const candidatePrice = parseFloat(candidate.product.price || '0');
+    const candidatePrice = 0; // TODO: Fetch from productCombinations table
 
     // Get candidate features
     const candidateFeatures = await db
@@ -308,11 +308,9 @@ async function getSimilarFeatureProducts(
         name: candidate.product.name,
         slug: candidate.product.slug,
         sku: candidate.product.sku,
-        image: candidate.product.image,
+        image: candidate.product.ogImage || null, // TODO: Fetch from productImages table
         price: candidatePrice,
-        compareAtPrice: candidate.product.compareAtPrice
-          ? parseFloat(candidate.product.compareAtPrice)
-          : null,
+        compareAtPrice: null, // TODO: Fetch from productCombinations table
         similarityScore,
         matchDetails: {
           sameCategory: true,

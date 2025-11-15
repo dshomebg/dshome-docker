@@ -392,7 +392,7 @@ export default function SimilarProductsSettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <label className="text-sm text-gray-700 dark:text-gray-300">
-                    Показвай бутон "Добави в количка"
+                    Показвай бутон &quot;Добави в количка&quot;
                   </label>
                   <input
                     type="checkbox"
@@ -518,7 +518,7 @@ export default function SimilarProductsSettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <label className="text-sm text-gray-700 dark:text-gray-300">
-                    Показвай бутон "Добави в количка"
+                    Показвай бутон &quot;Добави в количка&quot;
                   </label>
                   <input
                     type="checkbox"
