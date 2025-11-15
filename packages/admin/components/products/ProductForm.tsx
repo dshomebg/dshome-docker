@@ -294,12 +294,28 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [measurementRules, setMeasurementRules] = useState<MeasurementRule[]>([]);
 
+  // Feature groups filtering based on category configuration
+  const [allowedFeatureGroupIds, setAllowedFeatureGroupIds] = useState<string[]>([]);
+  const [hasFeatureConfiguration, setHasFeatureConfiguration] = useState(false);
+
   useEffect(() => {
     fetchReferenceData();
     fetchVatPercentage();
     fetchBaseUrl();
     fetchSeoSettings();
   }, []);
+
+  // Fetch allowed feature groups when primary category changes
+  useEffect(() => {
+    const primaryCategory = selectedCategories.find(c => c.isPrimary);
+    if (primaryCategory) {
+      fetchAllowedFeatureGroups(primaryCategory.categoryId);
+    } else {
+      // No primary category - show all groups
+      setAllowedFeatureGroupIds([]);
+      setHasFeatureConfiguration(false);
+    }
+  }, [selectedCategories]);
 
   const fetchBaseUrl = async () => {
     try {
@@ -556,6 +572,26 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       setFeatureGroups(featuresRes.data);
     } catch (error) {
       console.error("Error refreshing feature groups:", error);
+    }
+  };
+
+  const fetchAllowedFeatureGroups = async (categoryId: string) => {
+    try {
+      const response = await categoriesService.getAllowedFeatureGroups(categoryId);
+      if (response.data.hasConfiguration) {
+        // Category has configuration - filter by allowed groups
+        setAllowedFeatureGroupIds(response.data.allowedGroups.map(g => g.id));
+        setHasFeatureConfiguration(true);
+      } else {
+        // No configuration - show all groups
+        setAllowedFeatureGroupIds([]);
+        setHasFeatureConfiguration(false);
+      }
+    } catch (error) {
+      console.error("Error fetching allowed feature groups:", error);
+      // On error, show all groups
+      setAllowedFeatureGroupIds([]);
+      setHasFeatureConfiguration(false);
     }
   };
 
@@ -1898,11 +1934,21 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       {/* Add Characteristic Modal */}
       {showCharacteristicModal && (
         <AddCharacteristicModal
-          featureGroups={featureGroups}
+          featureGroups={
+            hasFeatureConfiguration && allowedFeatureGroupIds.length > 0
+              ? featureGroups.filter(g => allowedFeatureGroupIds.includes(g.id))
+              : featureGroups
+          }
           selectedFeatures={selectedFeatures}
           onAdd={handleAddCharacteristic}
           onClose={() => setShowCharacteristicModal(false)}
           onRefresh={refreshFeatureGroups}
+          hasFeatureConfiguration={hasFeatureConfiguration}
+          primaryCategoryName={
+            selectedCategories.find(c => c.isPrimary)
+              ? categories.find(cat => cat.id === selectedCategories.find(c => c.isPrimary)?.categoryId)?.name
+              : undefined
+          }
         />
       )}
     </div>

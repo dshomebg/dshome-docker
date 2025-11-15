@@ -26,3 +26,4 @@ export * from './wishlists';
 export * from './blog-categories';
 export * from './blog-authors';
 export * from './blog-posts';
+export * from './category-feature-weights';

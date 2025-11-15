@@ -22,6 +22,8 @@ interface AddCharacteristicModalProps {
   onAdd: (featureValueId: string) => void;
   onClose: () => void;
   onRefresh: () => void;
+  hasFeatureConfiguration?: boolean;
+  primaryCategoryName?: string;
 }
 
 export default function AddCharacteristicModal({
@@ -30,6 +32,8 @@ export default function AddCharacteristicModal({
   onAdd,
   onClose,
   onRefresh,
+  hasFeatureConfiguration = false,
+  primaryCategoryName,
 }: AddCharacteristicModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -114,6 +118,13 @@ export default function AddCharacteristicModal({
         {error && (
           <div className="mx-6 mt-4 rounded-lg bg-error-50 p-3 text-sm text-error-700 dark:bg-error-500/10 dark:text-error-400">
             {error}
+          </div>
+        )}
+
+        {/* Info about filtering */}
+        {hasFeatureConfiguration && primaryCategoryName && (
+          <div className="mx-6 mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+            ℹ️ Показани са само групи конфигурирани за категорията &quot;{primaryCategoryName}&quot;
           </div>
         )}
 

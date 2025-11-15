@@ -67,6 +67,10 @@ dev-assets/images/categories/*
 *.bak
 *.backup
 
+# Docker build artifacts
+*.tar.gz
+*.tar
+
 # Licensed/Commercial templates (do not commit to public repo)
 tailadminpro/
 TailAdmin-pro-v2.2-figma/

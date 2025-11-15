@@ -6,6 +6,7 @@ import { categoriesService, Category } from "@/lib/services/categories.service";
 import CategoryTreeSelect from "./CategoryTreeSelect";
 import ImageUpload from "../ui/ImageUpload";
 import TiptapEditor from "../editor/TiptapEditor";
+import CategoryFeatureWeightsSection from "./CategoryFeatureWeightsSection";
 import { SeoFormData } from "@dshome/shared";
 
 interface CategoryFormProps {
@@ -354,6 +355,11 @@ export default function CategoryForm({ category, mode }: CategoryFormProps) {
             </div>
           </div>
         </div>
+
+        {/* Feature Weights Section - Only for Product categories in Edit mode */}
+        {mode === "edit" && style === "product" && category && (
+          <CategoryFeatureWeightsSection categoryId={category.id} />
+        )}
 
         <div className="flex gap-3">
           <button

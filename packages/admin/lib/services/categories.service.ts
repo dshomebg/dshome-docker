@@ -105,4 +105,67 @@ export const categoriesService = {
   deleteCategory: async (id: string): Promise<void> => {
     await apiClient.delete(`/categories/${id}`);
   },
+
+  // Feature Weights
+  getCategoryFeatureWeights: async (categoryId: string): Promise<{
+    success: boolean;
+    data: {
+      categoryId: string;
+      categoryName: string;
+      weights: Array<{
+        id: string;
+        type: 'price' | 'feature_group';
+        featureGroupId?: string;
+        featureGroupName?: string;
+        weight: number;
+        position: number;
+      }>;
+      totalWeight: number;
+    };
+  }> => {
+    const response = await apiClient.get(`/categories/${categoryId}/feature-weights`);
+    return response.data;
+  },
+
+  updateCategoryFeatureWeights: async (
+    categoryId: string,
+    weights: Array<{
+      type: 'price' | 'feature_group';
+      featureGroupId?: string;
+      weight: number;
+    }>
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      categoryId: string;
+      totalWeight: number;
+      weightsCount: number;
+    };
+  }> => {
+    const response = await apiClient.put(`/categories/${categoryId}/feature-weights`, { weights });
+    return response.data;
+  },
+
+  getAllowedFeatureGroups: async (categoryId: string): Promise<{
+    success: boolean;
+    data: {
+      categoryId: string;
+      categoryName: string;
+      allowedGroups: Array<{
+        id: string;
+        name: string;
+        weight: number;
+        features: Array<{
+          id: string;
+          name: string;
+          position: number;
+        }>;
+      }>;
+      hasConfiguration: boolean;
+    };
+  }> => {
+    const response = await apiClient.get(`/categories/${categoryId}/allowed-feature-groups`);
+    return response.data;
+  },
 };
