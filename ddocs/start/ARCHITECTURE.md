@@ -1,6 +1,6 @@
 # DSHome Architecture - Quick Reference
 
-**Последна актуализация:** 2025-11-12
+**Последна актуализация:** 2025-11-15
 
 ## URLs и Портове
 
@@ -100,6 +100,12 @@ courier_pricing_ranges   # Pricing ranges за куриери
 
 # Design
 email_templates          # Email шаблони
+
+# Blog
+blog_categories          # Blog категории (йерархични, parentId)
+blog_authors             # Автори на blog постове
+blog_posts               # Blog постове
+blog_post_views          # Преглеждания на постове (за статистика)
 
 # Settings
 import_templates         # Excel импорт темплейти
@@ -217,6 +223,30 @@ GET    /api/design/email-templates/:id  # Get single template
 PUT    /api/design/email-templates/:id  # Update template
 DELETE /api/design/email-templates/:id  # Delete template
 GET    /api/design/email-templates/variables  # Get available variables
+
+# Blog Categories
+GET    /api/blog/categories             # List categories
+POST   /api/blog/categories             # Create category
+GET    /api/blog/categories/tree        # Get tree structure
+GET    /api/blog/categories/:id         # Get single category
+PUT    /api/blog/categories/:id         # Update category
+DELETE /api/blog/categories/:id         # Delete category
+
+# Blog Authors
+GET    /api/blog/authors                # List authors
+POST   /api/blog/authors                # Create author
+GET    /api/blog/authors/:id            # Get single author
+PUT    /api/blog/authors/:id            # Update author
+DELETE /api/blog/authors/:id            # Delete author
+
+# Blog Posts
+GET    /api/blog/posts                  # List posts
+POST   /api/blog/posts                  # Create post
+GET    /api/blog/posts/stats            # Get statistics
+GET    /api/blog/posts/:id              # Get single post
+PUT    /api/blog/posts/:id              # Update post
+DELETE /api/blog/posts/:id              # Delete post
+POST   /api/blog/posts/:id/view         # Record post view
 ```
 
 ## Deployment

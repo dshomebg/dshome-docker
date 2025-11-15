@@ -20,7 +20,7 @@ export const getBlogAuthors = async (req: Request, res: Response, next: NextFunc
     // Build conditions
     const conditions = [];
     if (status) {
-      conditions.push(eq(blogAuthors.status, status as string));
+      conditions.push(eq(blogAuthors.status, status as "active" | "inactive"));
     }
     if (search) {
       conditions.push(

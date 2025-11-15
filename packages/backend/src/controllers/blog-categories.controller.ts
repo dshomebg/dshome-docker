@@ -21,7 +21,7 @@ export const getBlogCategories = async (req: Request, res: Response, next: NextF
     // Build conditions
     const conditions = [];
     if (status) {
-      conditions.push(eq(blogCategories.status, status as string));
+      conditions.push(eq(blogCategories.status, status as "active" | "inactive"));
     }
     if (parentId === 'null' || parentId === '') {
       conditions.push(isNull(blogCategories.parentId));
@@ -323,7 +323,7 @@ export const getBlogCategoryTree = async (req: Request, res: Response, next: Nex
 
     // Build tree structure
     const categoryMap = new Map();
-    const tree = [];
+    const tree: any[] = [];
 
     // First pass: create map
     allCategories.forEach(cat => {

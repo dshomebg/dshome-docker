@@ -22,7 +22,7 @@ export const getBlogPosts = async (req: Request, res: Response, next: NextFuncti
     // Build conditions
     const conditions = [];
     if (status) {
-      conditions.push(eq(blogPosts.status, status as string));
+      conditions.push(eq(blogPosts.status, status as "draft" | "published" | "archived"));
     }
     if (categoryId) {
       conditions.push(eq(blogPosts.categoryId, categoryId as string));

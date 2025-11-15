@@ -2,29 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { blogService } from "@/lib/services/blog.service";
+import { BlogStatistics } from "@dshome/shared";
 import Link from "next/link";
 
-interface BlogStats {
-  totalPosts: number;
-  publishedPosts: number;
-  draftPosts: number;
-  totalCategories: number;
-  totalAuthors: number;
-  totalViews: number;
-  popularPosts: Array<{
-    post: any;
-    category: any;
-    author: any;
-  }>;
-  recentPosts: Array<{
-    post: any;
-    category: any;
-    author: any;
-  }>;
-}
-
 export default function BlogStatsPage() {
-  const [stats, setStats] = useState<BlogStats | null>(null);
+  const [stats, setStats] = useState<BlogStatistics | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
@@ -162,7 +144,7 @@ export default function BlogStatsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/[0.05]">
-                {stats.popularPosts.map(({ post, category, author }) => (
+                {stats.popularPosts.map(({ post, viewsCount }) => (
                   <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                       <Link
@@ -173,13 +155,13 @@ export default function BlogStatsPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {category?.name || '-'}
+                      {post.category?.name || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {author?.name || '-'}
+                      {post.author?.name || '-'}
                     </td>
                     <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
-                      {post.viewsCount.toLocaleString()}
+                      {viewsCount.toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -221,7 +203,7 @@ export default function BlogStatsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/[0.05]">
-                {stats.recentPosts.map(({ post, category, author }) => (
+                {stats.recentPosts.map((post) => (
                   <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                       <Link
@@ -232,10 +214,10 @@ export default function BlogStatsPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {category?.name || '-'}
+                      {post.category?.name || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {author?.name || '-'}
+                      {post.author?.name || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
