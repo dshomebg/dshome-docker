@@ -27,3 +27,4 @@ export * from './blog-categories';
 export * from './blog-authors';
 export * from './blog-posts';
 export * from './category-feature-weights';
+export * from './similar-products-settings';

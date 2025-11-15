@@ -27,6 +27,8 @@ import reviewsRoutes from './reviews.routes';
 import productQaRoutes from './product-qa.routes';
 import wishlistsRoutes from './wishlists.routes';
 import blogRoutes from './blog.routes';
+import similarProductsRoutes from './similar-products.routes';
+import similarProductsSettingsRoutes from './similar-products-settings.routes';
 
 const router: Router = Router();
 
@@ -42,6 +44,7 @@ router.use('/catalog-settings', catalogSettingsRoutes);
 router.use('/faceted-navigation', facetedNavigationRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/products', productsRoutes);
+router.use('/products', similarProductsRoutes);
 router.use('/measurement-rules', measurementRulesRoutes);
 router.use('/seo-settings', seoSettingsRoutes);
 router.use('/general-settings', generalSettingsRoutes);
@@ -58,5 +61,6 @@ router.use('/reviews', reviewsRoutes);
 router.use('/product-qa', productQaRoutes);
 router.use('/wishlists', wishlistsRoutes);
 router.use('/blog', blogRoutes);
+router.use('/similar-products-settings', similarProductsSettingsRoutes);
 
 export default router;
