@@ -51,7 +51,7 @@ export const updateSettings = async (
   try {
     logger.info('PUT /api/similar-products-settings');
 
-    const updateData = req.body;
+    const { id, createdAt, updatedAt, ...updateData } = req.body;
 
     // Get existing settings
     const [existingSettings] = await db
@@ -66,7 +66,7 @@ export const updateSettings = async (
       });
     }
 
-    // Update settings
+    // Update settings (exclude id, createdAt, updatedAt from update)
     const [updatedSettings] = await db
       .update(similarProductsSettings)
       .set({
