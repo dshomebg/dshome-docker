@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Puzzle,
   Palette,
+  BookOpen,
 } from "lucide-react";
 
 interface MenuItem {
@@ -53,6 +54,16 @@ const menuItems: MenuItem[] = [
       { title: "Клиенти", path: "/sales/customers" },
       { title: "Куриери", path: "/sales/couriers" },
       { title: "Статуси", path: "/sales/order-statuses" },
+    ],
+  },
+  {
+    title: "Блог",
+    icon: BookOpen,
+    children: [
+      { title: "Категории", path: "/blog/categories" },
+      { title: "Постове", path: "/blog/posts" },
+      { title: "Автори", path: "/blog/authors" },
+      { title: "Статистики", path: "/blog/stats" },
     ],
   },
   {

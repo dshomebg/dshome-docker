@@ -23,3 +23,6 @@ export * from './images';
 export * from './reviews';
 export * from './product-qa';
 export * from './wishlists';
+export * from './blog-categories';
+export * from './blog-authors';
+export * from './blog-posts';
