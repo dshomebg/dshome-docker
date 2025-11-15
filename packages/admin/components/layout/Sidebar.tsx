@@ -69,6 +69,7 @@ const menuItems: MenuItem[] = [
     children: [
       { title: "Оценки и Отзиви", path: "/modules/reviews" },
       { title: "Въпроси и Отговори", path: "/modules/product-qa" },
+      { title: "Списъци с желания", path: "/modules/wishlists" },
       { title: "Пакети/м²", path: "/modules/measurement-packages" },
       { title: "SEO", path: "/modules/seo" },
       { title: "Количества - Update", path: "/modules/quantity-update" },

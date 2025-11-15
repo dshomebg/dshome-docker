@@ -6,3 +6,4 @@ export * from './user.types';
 export * from './warehouse.types';
 export * from './api.types';
 export * from './seo.types';
+export * from './wishlist.types';

@@ -22,3 +22,4 @@ export * from './import-templates';
 export * from './images';
 export * from './reviews';
 export * from './product-qa';
+export * from './wishlists';

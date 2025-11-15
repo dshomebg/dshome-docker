@@ -25,6 +25,7 @@ import orderStatusesRoutes from './order-statuses.routes';
 import ordersRoutes from './orders.routes';
 import reviewsRoutes from './reviews.routes';
 import productQaRoutes from './product-qa.routes';
+import wishlistsRoutes from './wishlists.routes';
 
 const router: Router = Router();
 
@@ -54,5 +55,6 @@ router.use('/order-statuses', orderStatusesRoutes);
 router.use('/orders', ordersRoutes);
 router.use('/reviews', reviewsRoutes);
 router.use('/product-qa', productQaRoutes);
+router.use('/wishlists', wishlistsRoutes);
 
 export default router;
